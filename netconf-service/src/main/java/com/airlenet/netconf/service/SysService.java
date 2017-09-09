@@ -18,7 +18,6 @@ public class SysService {
         if (nodeSet != null && !nodeSet.isEmpty()) {
             return nodeSet.get(0);
         }
-
         return null;
     }
 }

@@ -11,7 +11,7 @@ import com.tailf.jnc.Element;
 import java.io.IOException;
 
 /**
- * @author lig
+ * @author airlenet
  * @date 17/9/8
  */
 public class ElementDeserializer extends JsonDeserializer<Element> {

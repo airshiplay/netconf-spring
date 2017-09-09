@@ -6,13 +6,12 @@ import com.tailf.jnc.NodeSet;
 import java.io.IOException;
 
 /**
- * @author lig
+ * @author airlenet
  * @date 17/9/7
  */
 public class Demo {
     public static void main(String args[]) throws JNCException, IOException {
-        PlayNetconfDevice netconfDevice = new PlayNetconfDevice(1L, "admin", "admin", "admin", "admin", "172.16.25.147", 2022);
-
+        PlayNetconfDevice netconfDevice = new PlayNetconfDevice(1L, "admin", "admin",   "172.16.25.147", 2022);
 
         PlayNetconfSession playNetconfSession = netconfDevice.getDefaultNetconfSession();
 

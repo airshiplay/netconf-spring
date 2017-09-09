@@ -17,13 +17,14 @@
     <url>https://github.com/airshiplay/play-netconf</url>
     <properties>
         <play.framework.version>1.1.0-SNAPSHOT</play.framework.version>
-        <play.yang.version>1.0.1.RELEASE</play.yang.version>
+        <play.yang.version>1.1.0-SNAPSHOT</play.yang.version>
     </properties>
     <modules>
         <module>netconf-service</module>
         <module>netconf-common</module>
         <module>netconf-rest</module>
         <module>netconf-call-home</module>
+        <module>yang-model</module>
     </modules>
     <licenses>
         <license>

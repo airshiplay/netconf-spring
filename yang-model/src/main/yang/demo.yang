@@ -1,0 +1,18 @@
+module demo {
+    namespace "http://tail-f.com/ns/example/demo";
+    prefix demo;
+    import tailf-common {
+      prefix "tailf";
+    }
+    // yang here
+    container employees {
+        list employee {
+            key id;
+            leaf id {type uint32;}
+            leaf name {type string;}
+            leaf age {type uint8;}
+            leaf title {type string;}
+            leaf city {type string;}
+        }
+    }
+}
