@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
+//import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import com.tailf.jnc.Element;
 
 import java.io.IOException;
@@ -68,13 +68,13 @@ public class ElementDeserializer extends JsonDeserializer<Element> {
     @Override
     public Element deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
 
-        FromXmlParser fromXmlParser =(FromXmlParser) p;
-String str=p.readValueAs(String.class);
-        if (fromXmlParser.getCurrentToken() == JsonToken.START_OBJECT) {
-            JsonToken nextToken = fromXmlParser.nextToken();
-            nextToken.asString();
-        }fromXmlParser.getCurrentName();
-        fromXmlParser.getInputSource();
+//        FromXmlParser fromXmlParser =(FromXmlParser) p;
+//String str=p.readValueAs(String.class);
+//        if (fromXmlParser.getCurrentToken() == JsonToken.START_OBJECT) {
+//            JsonToken nextToken = fromXmlParser.nextToken();
+//            nextToken.asString();
+//        }fromXmlParser.getCurrentName();
+//        fromXmlParser.getInputSource();
 
         return null;
     }

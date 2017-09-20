@@ -9,13 +9,18 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>netconf-call-home</artifactId>
-
+    <artifactId>netconf-server</artifactId>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <sshd.version>1.6.0</sshd.version>
+    </properties>
     <dependencies>
+        <!-- Apache SSHD -->
         <dependency>
-            <groupId>com.airlenet.netconf</groupId>
-            <artifactId>netconf-nettyutil</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.sshd</groupId>
+            <artifactId>sshd-core</artifactId>
+            <version>${sshd.version}</version>
         </dependency>
+
     </dependencies>
 </project>

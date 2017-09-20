@@ -1,6 +1,6 @@
 package com.airlenet.netconf;
 
-import com.airlenet.play.web.ServletSupport;
+import com.airlenet.web.ServletSupport;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
@@ -11,10 +11,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 /**
  * Created by airshiplay on 2017/9/2.
  */
-@Configuration
-@ComponentScan(basePackages = { " com.airlenet.netconf" }, excludeFilters = { @ComponentScan.Filter(value = Controller.class, type = FilterType.ANNOTATION),
-        @ComponentScan.Filter(value = RestController.class,type = FilterType.ANNOTATION),
-        @ComponentScan.Filter(value = EnableWebMvc.class, type = FilterType.ANNOTATION),
-        @ComponentScan.Filter(value = ServletSupport.class, type = FilterType.ANNOTATION) })
-public class WebRootConfigBean {
-}
+//@Configuration
+//@ComponentScan(basePackages = { " com.airlenet.netconf" }, excludeFilters = { @ComponentScan.Filter(value = Controller.class, type = FilterType.ANNOTATION),
+//        @ComponentScan.Filter(value = RestController.class,type = FilterType.ANNOTATION),
+//        @ComponentScan.Filter(value = EnableWebMvc.class, type = FilterType.ANNOTATION),
+//        @ComponentScan.Filter(value = ServletSupport.class, type = FilterType.ANNOTATION) })
+//public class WebRootConfigBean {
+//}

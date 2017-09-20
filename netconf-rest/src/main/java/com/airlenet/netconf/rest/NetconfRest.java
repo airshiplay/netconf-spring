@@ -1,7 +1,7 @@
 package com.airlenet.netconf.rest;
 
 import com.airlenet.netconf.service.SysService;
-import com.airlenet.play.repo.domain.Result;
+import com.airlenet.repo.domain.Result;
 import com.airlenet.netconf.common.PlayNetconfDevice;
 import com.airlenet.netconf.service.NetconfService;
 import com.tailf.jnc.Element;
@@ -23,7 +23,7 @@ public class NetconfRest {
     @Autowired
     SysService sysService;
 
-    PlayNetconfDevice netconfDevice = new PlayNetconfDevice(1L, "admin", "admin", "admin", "admin", "172.16.129.181", 2022);
+    PlayNetconfDevice netconfDevice = new PlayNetconfDevice(1L, "admin", "admin", "172.16.129.181", 2022);
     @Autowired
     NetconfService netconfService;
 
@@ -35,7 +35,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().addContent(e.getRpcErrors());
+            return Result.exception().setContent(e.getRpcErrors());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -45,11 +45,11 @@ public class NetconfRest {
     @ResponseBody
     public Object get() {
         try {
-            return Result.success().addContent(netconfService.get(netconfDevice));
+            return Result.success().setContent(netconfService.get(netconfDevice));
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().addContent(e.getRpcErrors());
+            return Result.exception().setContent(e.getRpcErrors());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -59,11 +59,11 @@ public class NetconfRest {
     @ResponseBody
     public Object getXpath(@PathVariable("xpath") String xpath) {
         try {
-            return Result.success().addContent(netconfService.get(netconfDevice, xpath));
+            return Result.success().setContent(netconfService.get(netconfDevice, xpath));
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().addContent(e.getRpcErrors());
+            return Result.exception().setContent(e.getRpcErrors());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -76,7 +76,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().addContent(e.getRpcErrors());
+            return Result.exception().setContent(e.getRpcErrors());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -90,7 +90,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().addContent(e.getRpcErrors());
+            return Result.exception().setContent(e.getRpcErrors());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -104,7 +104,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().addContent(e.getRpcErrors());
+            return Result.exception().setContent(e.getRpcErrors());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }

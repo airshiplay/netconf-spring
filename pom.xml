@@ -3,11 +3,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.airlenet</groupId>
-        <artifactId>play-parent</artifactId>
-        <version>1.0.0.RELEASE</version>
-    </parent>
     <groupId>com.airlenet.netconf</groupId>
     <artifactId>play-netconf</artifactId>
     <version>1.0.0-SNAPSHOT</version>
@@ -16,7 +11,14 @@
     <description>play netconf</description>
     <url>https://github.com/airshiplay/play-netconf</url>
     <properties>
-        <play.framework.version>1.1.0-SNAPSHOT</play.framework.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <encoding>UTF-8</encoding>
+        <java.version>1.8</java.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
+        <springframework.version>4.3.10.RELEASE</springframework.version>
+        <play.framework.version>2.0.0-SNAPSHOT</play.framework.version>
         <play.yang.version>1.1.0-SNAPSHOT</play.yang.version>
     </properties>
     <modules>
@@ -25,7 +27,20 @@
         <module>netconf-rest</module>
         <module>netconf-call-home</module>
         <module>yang-model</module>
+        <module>netconf-server</module>
+        <module>netconf-nettyutil</module>
     </modules>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.airlenet</groupId>
+                <artifactId>play-platform</artifactId>
+                <version>${play.framework.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>

@@ -15,13 +15,7 @@
         <dependency>
             <groupId>com.airlenet</groupId>
             <artifactId>play-web</artifactId>
-            <version>1.0.0.RELEASE</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.airlenet</groupId>
-                    <artifactId>play-cache</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${play.framework.version}</version>
         </dependency>
         <dependency>
             <groupId>com.airlenet</groupId>
