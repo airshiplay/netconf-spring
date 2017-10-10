@@ -3,6 +3,7 @@ package com.airlenet.netconf.common;
 import com.tailf.jnc.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,7 +22,7 @@ public class PlayNetconfDevice {
      */
     private boolean openTransaction;
 
-    private List<PlayNetconfSession> playNetconfSessionList;
+    private  PlayNetconfSession playNetconfSession;
     public PlayNetconfDevice(Long id,String remoteUser, String password, String mgmt_ip, int mgmt_port) {
         this.id = id;
         this.remoteUser = remoteUser;
@@ -31,24 +32,42 @@ public class PlayNetconfDevice {
     }
 
     public PlayNetconfSession getDefaultNetconfSession() throws IOException, JNCException {
-        DeviceUser duser = new DeviceUser(this.remoteUser, this.remoteUser, this.password);
+        PlayNotification notification =null;
 
         if(device==null){
+            DeviceUser duser = new DeviceUser(this.remoteUser, this.remoteUser, this.password);
             device = new Device(this.mgmt_ip, duser, this.mgmt_ip, this.mgmt_port);
             device.connect(this.remoteUser);
-            device.newSession(new PlayNotification(this),"defaultPlaySession");
+            notification = new PlayNotification(this);
+            device.newSession(notification,"defaultPlaySession");
+            device.getSession("defaultPlaySession").createSubscription("alarm");
         }else{
             NetconfSession netconfSession = device.getSession("defaultPlaySession");
             if(netconfSession==null){
                 device.connect(this.remoteUser);
-                device.newSession(new PlayNotification(this),"defaultPlaySession");
+                notification = new PlayNotification(this);
+                device.newSession(notification,"defaultPlaySession");
+                device.getSession("defaultPlaySession").createSubscription("alarm");
             }
         }
-       return new PlayNetconfSession(this, device.getSession("defaultPlaySession"));
+        if(playNetconfSession!=null){
+           long newSessionId= device.getSession("defaultPlaySession").sessionId;
+            long oldSessionId=  playNetconfSession.getSessionId();
+            if(newSessionId!=oldSessionId){
+                playNetconfSession = new PlayNetconfSession(this, device.getSession("defaultPlaySession"),notification);
+            }
+        }else{
+            playNetconfSession = new PlayNetconfSession(this, device.getSession("defaultPlaySession"),notification);
+        }
+       return playNetconfSession;
     }
 
     public void closeDefaultNetconfSession() {
         device.closeSession("defaultPlaySession");
+    }
+
+    public void close(){
+        device.close();
     }
 
     public Long getId() {

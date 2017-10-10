@@ -4,6 +4,9 @@ import com.tailf.jnc.IOSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by airlenet on 17/8/24.
  */
@@ -11,12 +14,24 @@ public class PlayNotification extends IOSubscriber {
 
    private static Logger logger = LoggerFactory.getLogger(PlayNotification.class);
     private PlayNetconfDevice playNetconfDevice;
+    private List<PlayNetconfListener> listenerList;
     /**
      * Empty constructor. The rawmode, inb and outb fields will be unassigned.
      */
     public PlayNotification(PlayNetconfDevice playNetconfDevice) {
         super(false);
         this.playNetconfDevice = playNetconfDevice;
+    }
+
+    public void addListenerList(PlayNetconfListener listener) {
+        if(null== listenerList){
+            listenerList = new ArrayList<>();
+        }
+        listenerList.add(listener);
+    }
+
+    public void removeListenerList(PlayNetconfListener listener) {
+        this.listenerList.remove(listener);
     }
 
     /**
@@ -26,7 +41,10 @@ public class PlayNotification extends IOSubscriber {
      */
     @Override
     public void input(String s) {
-        logger.info("receive from ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
+        for(PlayNetconfListener listener:listenerList){
+            listener.receive(this.playNetconfDevice.getId(),this.playNetconfDevice.getMgmt_ip(),s);
+        }
+//        logger.info("receive from ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
     }
 
     /**
@@ -36,6 +54,11 @@ public class PlayNotification extends IOSubscriber {
      */
     @Override
     public void output(String s) {
-        logger.debug("send to ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
+        for(PlayNetconfListener listener:listenerList){
+            listener.send(this.playNetconfDevice.getId(),this.playNetconfDevice.getMgmt_ip(),s);
+        }
+//        logger.info("send to ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
     }
+
+
 }

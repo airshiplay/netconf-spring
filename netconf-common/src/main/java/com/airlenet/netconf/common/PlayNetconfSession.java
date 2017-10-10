@@ -1,6 +1,8 @@
 package com.airlenet.netconf.common;
 
 import com.tailf.jnc.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -11,12 +13,32 @@ import java.io.IOException;
 public class PlayNetconfSession {
     private final NetconfSession netconfSession;
     private final PlayNetconfDevice playNetconfDevic;
-
-    public PlayNetconfSession(PlayNetconfDevice playNetconfDevice, NetconfSession defaultPlaySession) {
+    private final PlayNotification notification;
+    private static final Logger logger = LoggerFactory.getLogger(PlayNetconfSession.class);
+    public PlayNetconfSession(PlayNetconfDevice playNetconfDevice, NetconfSession defaultPlaySession,PlayNotification notification) {
         this.netconfSession = defaultPlaySession;
         this.playNetconfDevic =playNetconfDevice;
+        this.notification = notification;
+        Thread alarmThread = new Thread() {
+            public void run() {
+                while (true) {
+                    if (netconfSession.getCapabilities().hasNotification()) {
+                        try {
+                            netconfSession.receiveNotification();
+                        } catch (Exception e) {
+                            logger.error("receive notification failed:" + e.getMessage(), e);
+                            playNetconfDevice.closeDefaultNetconfSession();
+                            break;
+                        }
+                    }
+                }
+            }
+        };
+        alarmThread.start();
     }
-
+    public void createSubscription(String stream) throws IOException, JNCException {
+        this.getNetconfSession().createSubscription(stream);
+    }
     public boolean isOpenTransaction() {
         return playNetconfDevic.isOpenTransaction();
     }
@@ -82,9 +104,20 @@ public class PlayNetconfSession {
         return  this.netconfSession.getConfig();
     }
 
+    public NodeSet callRpc(Element element) throws IOException, JNCException {
+        return this.netconfSession.callRpc(element);
+    }
+
     public NetconfSession getNetconfSession(){
         return this.netconfSession;
     }
 
+    public void addNetconfSessionListenerList(PlayNetconfListener listener) {
+        notification.addListenerList(listener);
+    }
+
+    public void removeNetconfSessionListenerList(PlayNetconfListener listener) {
+        notification.removeListenerList(listener);
+    }
 
 }
