@@ -4,6 +4,7 @@ import com.tailf.jnc.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -23,6 +24,7 @@ public class PlayNetconfDevice {
     private boolean openTransaction;
 
     private  PlayNetconfSession playNetconfSession;
+    protected transient HashMap<String,PlayNetconfSession> connSessionMap = new HashMap<>();
     public PlayNetconfDevice(Long id,String remoteUser, String password, String mgmt_ip, int mgmt_port) {
         this.id = id;
         this.remoteUser = remoteUser;
@@ -40,30 +42,60 @@ public class PlayNetconfDevice {
             device.connect(this.remoteUser);
             notification = new PlayNotification(this);
             device.newSession(notification,"defaultPlaySession");
-            device.getSession("defaultPlaySession").createSubscription("alarm");
+            device.getSession("defaultPlaySession");
         }else{
             NetconfSession netconfSession = device.getSession("defaultPlaySession");
             if(netconfSession==null){
                 device.connect(this.remoteUser);
                 notification = new PlayNotification(this);
                 device.newSession(notification,"defaultPlaySession");
-                device.getSession("defaultPlaySession").createSubscription("alarm");
+                device.getSession("defaultPlaySession");
             }
         }
-        if(playNetconfSession!=null){
+        PlayNetconfSession defaultPlaySession = connSessionMap.get("defaultPlaySession");
+
+        if(defaultPlaySession!=null){
            long newSessionId= device.getSession("defaultPlaySession").sessionId;
-            long oldSessionId=  playNetconfSession.getSessionId();
+            long oldSessionId=  defaultPlaySession.getSessionId();
             if(newSessionId!=oldSessionId){
-                playNetconfSession = new PlayNetconfSession(this, device.getSession("defaultPlaySession"),notification);
+                defaultPlaySession = new PlayNetconfSession(this, device.getSession("defaultPlaySession"),notification);
             }
         }else{
-            playNetconfSession = new PlayNetconfSession(this, device.getSession("defaultPlaySession"),notification);
+            defaultPlaySession = new PlayNetconfSession(this, device.getSession("defaultPlaySession"),notification);
         }
-       return playNetconfSession;
+        connSessionMap.put("defaultPlaySession",defaultPlaySession);
+       return defaultPlaySession;
+    }
+
+    /**
+     * Netconf协议规定，一个netconf-session有且只有一个订阅，并且订阅消息一旦创建就不允许修改
+     * @param stream
+     * @param listener
+     * @throws IOException
+     * @throws JNCException
+     */
+    public void  createSubscription(String stream,PlayNetconfListener listener) throws IOException, JNCException {
+        PlayNetconfSession streamSession = connSessionMap.get(stream);
+        if(streamSession==null){
+            PlayNotification  notification = new PlayNotification(this,stream);
+            notification.addListenerList(listener);
+            device.newSession(notification,stream);
+            NetconfSession netconfSession = device.getSession(stream);
+            netconfSession.createSubscription(stream);
+            connSessionMap.put(stream,new PlayNetconfSession(this, netconfSession,notification));
+        }else{
+            streamSession.addNetconfSessionListenerList(listener);
+        }
     }
 
     public void closeDefaultNetconfSession() {
+        connSessionMap.remove("defaultPlaySession");
         device.closeSession("defaultPlaySession");
+    }
+
+    public void closeNetconfSession(String stream) {
+        connSessionMap.remove(stream);
+        device.closeSession(stream);
     }
 
     public void close(){
@@ -99,4 +131,16 @@ public class PlayNetconfDevice {
     }
 
 
+    static private class SessionConnData {
+        String sessionName;
+        SSHSession sshSession;
+        PlayNetconfSession session;
+        PlayNotification notification;
+
+        SessionConnData(String n, PlayNetconfSession s,PlayNotification noti) {
+            sessionName = n;
+            session = s;
+            notification = noti;
+        }
+    }
 }

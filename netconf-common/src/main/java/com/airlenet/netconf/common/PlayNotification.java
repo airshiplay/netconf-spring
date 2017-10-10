@@ -12,9 +12,10 @@ import java.util.List;
  */
 public class PlayNotification extends IOSubscriber {
 
-   private static Logger logger = LoggerFactory.getLogger(PlayNotification.class);
+    private static Logger logger = LoggerFactory.getLogger(PlayNotification.class);
     private PlayNetconfDevice playNetconfDevice;
     private List<PlayNetconfListener> listenerList;
+    private String stream;
     /**
      * Empty constructor. The rawmode, inb and outb fields will be unassigned.
      */
@@ -23,8 +24,14 @@ public class PlayNotification extends IOSubscriber {
         this.playNetconfDevice = playNetconfDevice;
     }
 
+    public PlayNotification(PlayNetconfDevice playNetconfDevice,String stream) {
+        super(false);
+        this.playNetconfDevice = playNetconfDevice;
+        this.stream = stream;
+    }
+
     public void addListenerList(PlayNetconfListener listener) {
-        if(null== listenerList){
+        if (null == listenerList) {
             listenerList = new ArrayList<>();
         }
         listenerList.add(listener);
@@ -41,10 +48,13 @@ public class PlayNotification extends IOSubscriber {
      */
     @Override
     public void input(String s) {
-        for(PlayNetconfListener listener:listenerList){
-            listener.receive(this.playNetconfDevice.getId(),this.playNetconfDevice.getMgmt_ip(),s);
+        if (listenerList != null) {
+            for (PlayNetconfListener listener : listenerList) {
+                listener.receive(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+            }
         }
-//        logger.info("receive from ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
+
+        logger.info("receive from ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
     }
 
     /**
@@ -54,11 +64,17 @@ public class PlayNotification extends IOSubscriber {
      */
     @Override
     public void output(String s) {
-        for(PlayNetconfListener listener:listenerList){
-            listener.send(this.playNetconfDevice.getId(),this.playNetconfDevice.getMgmt_ip(),s);
+        if (listenerList != null) {
+            for (PlayNetconfListener listener : listenerList) {
+                listener.send(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+            }
         }
-//        logger.info("send to ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
+
+        logger.info("send to ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
     }
 
 
+    public String getStream() {
+        return stream;
+    }
 }

@@ -19,23 +19,40 @@ public class PlayNetconfSession {
         this.netconfSession = defaultPlaySession;
         this.playNetconfDevic =playNetconfDevice;
         this.notification = notification;
-        Thread alarmThread = new Thread() {
-            public void run() {
-                while (true) {
-                    if (netconfSession.getCapabilities().hasNotification()) {
-                        try {
-                            netconfSession.receiveNotification();
-                        } catch (Exception e) {
-                            logger.error("receive notification failed:" + e.getMessage(), e);
-                            playNetconfDevice.closeDefaultNetconfSession();
-                            break;
-                        }
-                    }
+        if(notification.getStream()!=null){
+            new Thread(){
+                @Override
+                public void run() {
+                   while (true){
+                       if(netconfSession.getCapabilities().hasNotification()){
+                           try {
+                               netconfSession.receiveNotification();
+                           } catch (IOException e) {
+                               logger.error("receive notification failed"+e);
+                               playNetconfDevic.closeNetconfSession(notification.getStream());
+                               break;
+                           } catch (JNCException e) {
+                               logger.error("receive notification failed"+e);
+                               playNetconfDevic.closeNetconfSession(notification.getStream());
+                               break;
+                           } catch (Exception e) {
+                               logger.error("receive notification failed"+e);
+                               playNetconfDevic.closeNetconfSession(notification.getStream());
+                               break;
+                           }
+                       }
+                   }
                 }
-            }
-        };
-        alarmThread.start();
+            }.start();
+        }
     }
+
+    /**
+     * 添加监听数据流
+     * @param stream
+     * @throws IOException
+     * @throws JNCException
+     */
     public void createSubscription(String stream) throws IOException, JNCException {
         this.getNetconfSession().createSubscription(stream);
     }
