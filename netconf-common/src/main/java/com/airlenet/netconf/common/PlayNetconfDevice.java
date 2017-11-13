@@ -58,9 +58,11 @@ public class PlayNetconfDevice {
            long newSessionId= device.getSession("defaultPlaySession").sessionId;
             long oldSessionId=  defaultPlaySession.getSessionId();
             if(newSessionId!=oldSessionId){
+                notification = new PlayNotification(this);
                 defaultPlaySession = new PlayNetconfSession(this, device.getSession("defaultPlaySession"),notification);
             }
         }else{
+            notification = new PlayNotification(this);
             defaultPlaySession = new PlayNetconfSession(this, device.getSession("defaultPlaySession"),notification);
         }
         connSessionMap.put("defaultPlaySession",defaultPlaySession);

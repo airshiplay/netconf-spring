@@ -19,7 +19,7 @@ public class PlayNetconfSession {
         this.netconfSession = defaultPlaySession;
         this.playNetconfDevic =playNetconfDevice;
         this.notification = notification;
-        if(notification.getStream()!=null){
+        if(notification != null && notification.getStream()!=null){
             new Thread(){
                 @Override
                 public void run() {
