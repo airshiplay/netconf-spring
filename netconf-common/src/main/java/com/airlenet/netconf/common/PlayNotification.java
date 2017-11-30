@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -49,8 +50,14 @@ public class PlayNotification extends IOSubscriber {
     @Override
     public void input(String s) {
         if (listenerList != null) {
-            for (PlayNetconfListener listener : listenerList) {
-                listener.receive(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+            Iterator<PlayNetconfListener> iterator = listenerList.iterator();
+            while (iterator.hasNext()){
+                PlayNetconfListener listener=iterator.next();
+                if(listener.isRemove()){
+                    iterator.remove();
+                }else {
+                    listener.receive(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+                }
             }
         }
 
@@ -65,11 +72,16 @@ public class PlayNotification extends IOSubscriber {
     @Override
     public void output(String s) {
         if (listenerList != null) {
-            for (PlayNetconfListener listener : listenerList) {
-                listener.send(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+            Iterator<PlayNetconfListener> iterator = listenerList.iterator();
+            while (iterator.hasNext()){
+                PlayNetconfListener listener=iterator.next();
+                if(listener.isRemove()){
+                    iterator.remove();
+                }else {
+                    listener.send(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+                }
             }
         }
-
         logger.info("send to ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
     }
 
