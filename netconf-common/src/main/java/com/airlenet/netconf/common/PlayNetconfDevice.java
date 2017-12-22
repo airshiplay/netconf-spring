@@ -35,7 +35,6 @@ public class PlayNetconfDevice {
 
     public PlayNetconfSession getDefaultNetconfSession() throws IOException, JNCException {
         PlayNotification notification =null;
-
         if(device==null){
             DeviceUser duser = new DeviceUser(this.remoteUser, this.remoteUser, this.password);
             device = new Device(this.mgmt_ip, duser, this.mgmt_ip, this.mgmt_port);
@@ -81,7 +80,12 @@ public class PlayNetconfDevice {
         if(streamSession==null){
             PlayNotification  notification = new PlayNotification(this,stream);
             notification.addListenerList(listener);
-            device.newSession(notification,stream);
+            try{
+                device.newSession(notification,stream);
+            }catch (Exception e){//device 断链，重新连接
+                device.connect(this.remoteUser);
+                device.newSession(notification,stream);
+            }
             NetconfSession netconfSession = device.getSession(stream);
             netconfSession.createSubscription(stream);
             connSessionMap.put(stream,new PlayNetconfSession(this, netconfSession,notification));
