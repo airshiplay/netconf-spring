@@ -3,6 +3,7 @@ package com.airlenet.netconf.common;
 import com.tailf.jnc.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import java.io.IOException;
 
@@ -27,7 +28,8 @@ public class PlayNetconfSession {
                        if(netconfSession.getCapabilities().hasNotification()){
                            try {
                                netconfSession.receiveNotification();
-                           } catch (IOException e) {
+                               continue;
+                           }catch (IOException e) {
                                logger.error("receive notification failed"+e);
                                playNetconfDevic.closeNetconfSession(notification.getStream());
                                break;
@@ -35,8 +37,11 @@ public class PlayNetconfSession {
                                logger.error("receive notification failed"+e);
                                playNetconfDevic.closeNetconfSession(notification.getStream());
                                break;
-                           } catch (Exception e) {
+                           }catch (Exception e) {
                                logger.error("receive notification failed"+e);
+                               if(e instanceof SAXException){
+                                   continue;
+                               }
                                playNetconfDevic.closeNetconfSession(notification.getStream());
                                break;
                            }
