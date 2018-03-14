@@ -83,6 +83,9 @@ public class PlayNetconfDevice {
             try{
                 device.newSession(notification,stream);
             }catch (Exception e){//device 断链，重新连接
+                try {
+                    device.closeSession(stream);
+                }catch (Exception e1){}
                 device.connect(this.remoteUser);
                 device.newSession(notification,stream);
             }
