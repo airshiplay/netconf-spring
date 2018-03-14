@@ -22,13 +22,10 @@
         <play.yang.version>1.1.0-SNAPSHOT</play.yang.version>
     </properties>
     <modules>
-        <!--<module>netconf-service</module>-->
         <module>netconf-common</module>
-        <!--<module>netconf-rest</module>-->
-        <!--<module>netconf-call-home</module>-->
         <!--<module>yang-model</module>-->
-        <!--<module>netconf-server</module>-->
-        <!--<module>netconf-nettyutil</module>-->
+        <!--<module>netconf-service</module>-->
+        <!--<module>netconf-rest</module>-->
     </modules>
     <dependencyManagement>
         <dependencies>
