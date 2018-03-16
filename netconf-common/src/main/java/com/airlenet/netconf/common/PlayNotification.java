@@ -89,7 +89,7 @@ public class PlayNotification extends IOSubscriber {
             }
         }
 
-        logger.info("receive from ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
+        logger.debug("receive from ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
     }
 
     /**
@@ -110,7 +110,7 @@ public class PlayNotification extends IOSubscriber {
                 }
             }
         }
-        logger.info("send to ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
+        logger.debug("send to ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
     }
 
 
