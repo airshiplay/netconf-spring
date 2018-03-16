@@ -40,7 +40,9 @@ public class PlayNotification extends IOSubscriber {
         if (null == listenerList) {
             listenerList = new ArrayList<>();
         }
-        listenerList.add(listener);
+        if(listenerList.indexOf(listener)==-1){
+            listenerList.add(listener);
+        }
     }
 
 

@@ -83,6 +83,11 @@ public class PlayNetconfDevice {
             PlayNotification notification = new PlayNotification(this, stream);
             notification.addListenerList(listener);
             try {
+                if(device ==null){
+                    DeviceUser duser = new DeviceUser(this.remoteUser, this.remoteUser, this.password);
+                    device = new Device(this.mgmt_ip, duser, this.mgmt_ip, this.mgmt_port);
+                    device.connect(this.remoteUser);
+                }
                 device.newSession(notification, stream);
             } catch (Exception e) {//device 断链，重新连接
                 try {
