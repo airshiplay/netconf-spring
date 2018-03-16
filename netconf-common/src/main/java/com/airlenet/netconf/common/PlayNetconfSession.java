@@ -12,46 +12,64 @@ import java.io.IOException;
  * @author airlenet
  */
 public class PlayNetconfSession {
-    private final NetconfSession netconfSession;
+    private NetconfSession netconfSession;
     private final PlayNetconfDevice playNetconfDevic;
     private final PlayNotification notification;
+    private final boolean resume ;
     private static final Logger logger = LoggerFactory.getLogger(PlayNetconfSession.class);
-    public PlayNetconfSession(PlayNetconfDevice playNetconfDevice, NetconfSession defaultPlaySession,PlayNotification notification) {
+    public PlayNetconfSession(PlayNetconfDevice playNetconfDevice, NetconfSession defaultPlaySession,PlayNotification notification,boolean resume) {
         this.netconfSession = defaultPlaySession;
         this.playNetconfDevic =playNetconfDevice;
         this.notification = notification;
+        this.resume =resume;
+        this.receiveNotification(netconfSession);
+    }
+
+    public void receiveNotification(NetconfSession netconfSession){
+        this.netconfSession =netconfSession;
         if(notification != null && notification.getStream()!=null){
             new Thread(){
                 @Override
                 public void run() {
-                   while (true){
-                       if(netconfSession.getCapabilities().hasNotification()){
-                           try {
-                               netconfSession.receiveNotification();
-                               continue;
-                           }catch (IOException e) {
-                               logger.error("receive notification failed"+e);
-                               playNetconfDevic.closeNetconfSession(notification.getStream());
-                               break;
-                           } catch (JNCException e) {
-                               logger.error("receive notification failed"+e);
-                               playNetconfDevic.closeNetconfSession(notification.getStream());
-                               break;
-                           }catch (Exception e) {
-                               logger.error("receive notification failed"+e);
-                               if(e instanceof SAXException){
-                                   continue;
-                               }
-                               playNetconfDevic.closeNetconfSession(notification.getStream());
-                               break;
-                           }
-                       }
-                   }
+                    while (true){
+                        if(PlayNetconfSession.this.netconfSession.getCapabilities().hasNotification()){
+                            try {
+                                PlayNetconfSession.this.netconfSession.receiveNotification();
+                                continue;
+                            }catch (IOException e) {
+                                logger.error("receive notification failed"+e);
+                                if(resume){
+                                    notification.resume();
+                                } else {
+                                    playNetconfDevic.closeNetconfSession(notification.getStream());
+                                }
+                                break;
+                            } catch (JNCException e) {
+                                logger.error("receive notification failed"+e);
+                                if(resume){
+                                    notification.resume();
+                                } else {
+                                    playNetconfDevic.closeNetconfSession(notification.getStream());
+                                }
+                                break;
+                            }catch (Exception e) {
+                                logger.error("receive notification failed"+e);
+                                if(e instanceof SAXException){
+                                    continue;
+                                }
+                                if(resume){
+                                    notification.resume();
+                                } else {
+                                    playNetconfDevic.closeNetconfSession(notification.getStream());
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
             }.start();
         }
     }
-
     /**
      * 添加监听数据流
      * @param stream
@@ -140,6 +158,10 @@ public class PlayNetconfSession {
 
     public void removeNetconfSessionListenerList(PlayNetconfListener listener) {
         notification.removeListenerList(listener);
+    }
+
+    public PlayNotification getNotification() {
+        return notification;
     }
 
 }

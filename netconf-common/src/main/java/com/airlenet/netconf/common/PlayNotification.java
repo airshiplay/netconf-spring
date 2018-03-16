@@ -1,12 +1,13 @@
 package com.airlenet.netconf.common;
 
 import com.tailf.jnc.IOSubscriber;
+import com.tailf.jnc.JNCException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Created by airlenet on 17/8/24.
@@ -16,7 +17,11 @@ public class PlayNotification extends IOSubscriber {
     private static Logger logger = LoggerFactory.getLogger(PlayNotification.class);
     private PlayNetconfDevice playNetconfDevice;
     private List<PlayNetconfListener> listenerList;
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+    private static final String OnlineNotification="<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><connect></connect></notification>";
+    private static final String OfflineNotification="<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><disconnect></disconnect></notification>";
     private String stream;
+    private static Timer timer = new Timer();
     /**
      * Empty constructor. The rawmode, inb and outb fields will be unassigned.
      */
@@ -36,6 +41,29 @@ public class PlayNotification extends IOSubscriber {
             listenerList = new ArrayList<>();
         }
         listenerList.add(listener);
+    }
+
+
+    public void resume(){
+        input(String.format(OfflineNotification,simpleDateFormat.format(new Date())));
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    playNetconfDevice.resumSubscription(PlayNotification.this.getStream());
+                    input(String.format(OnlineNotification,simpleDateFormat.format(new Date())));
+                } catch (IOException e) {
+                    logger.error("",e);
+                    resume();
+                } catch (JNCException e) {
+                    logger.error("",e);
+                    resume();
+                } catch (Exception e) {
+                    logger.error("",e);
+                    resume();
+                }
+            }
+        },2*1000);
     }
 
     public void removeListenerList(PlayNetconfListener listener) {
