@@ -18,10 +18,11 @@ public class PlayNotification extends IOSubscriber {
     private PlayNetconfDevice playNetconfDevice;
     private List<PlayNetconfListener> listenerList;
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
-    private static final String OnlineNotification="<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><connect></connect></notification>";
-    private static final String OfflineNotification="<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><disconnect></disconnect></notification>";
+    private static final String OnlineNotification = "<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><connect></connect></notification>";
+    private static final String OfflineNotification = "<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><disconnect></disconnect></notification>";
     private String stream;
     private static Timer timer = new Timer();
+
     /**
      * Empty constructor. The rawmode, inb and outb fields will be unassigned.
      */
@@ -30,7 +31,7 @@ public class PlayNotification extends IOSubscriber {
         this.playNetconfDevice = playNetconfDevice;
     }
 
-    public PlayNotification(PlayNetconfDevice playNetconfDevice,String stream) {
+    public PlayNotification(PlayNetconfDevice playNetconfDevice, String stream) {
         super(false);
         this.playNetconfDevice = playNetconfDevice;
         this.stream = stream;
@@ -40,36 +41,32 @@ public class PlayNotification extends IOSubscriber {
         if (null == listenerList) {
             listenerList = new ArrayList<>();
         }
-        if(listenerList.indexOf(listener)==-1){
+        if (listenerList.indexOf(listener) == -1) {
             listenerList.add(listener);
         }
     }
 
 
-    public void resume(){
-        input(String.format(OfflineNotification,simpleDateFormat.format(new Date())));
-        timer.schedule(new TimerTask() {
+    public void resume() {
+        timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 try {
                     playNetconfDevice.resumSubscription(PlayNotification.this.getStream());
-                    input(String.format(OnlineNotification,simpleDateFormat.format(new Date())));
+                    input(String.format(OnlineNotification, simpleDateFormat.format(new Date())));
+                    cancel();//恢复成功，取消定时
                 } catch (IOException e) {
-                    logger.error("",e);
-                    resume();
+                    logger.warn("", e);
+                    input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 } catch (JNCException e) {
-                    logger.error("",e);
-                    resume();
+                    logger.warn("", e);
+                    input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 } catch (Exception e) {
-                    logger.error("",e);
-                    resume();
+                    logger.warn("", e);
+                    input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 }
             }
-        },2*1000);
-    }
-
-    public void removeListenerList(PlayNetconfListener listener) {
-        this.listenerList.remove(listener);
+        }, 1000, 3 * 1000);
     }
 
     /**
@@ -79,19 +76,20 @@ public class PlayNotification extends IOSubscriber {
      */
     @Override
     public void input(String s) {
-        if (listenerList != null) {
-            Iterator<PlayNetconfListener> iterator = listenerList.iterator();
-            while (iterator.hasNext()){
-                PlayNetconfListener listener=iterator.next();
-                if(listener.isRemove()){
-                    iterator.remove();
-                }else {
-                    listener.receive(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+        logger.debug("receive from ip:" + this.playNetconfDevice.getMgmt_ip() + " message:" + s);
+        try {
+            if (listenerList != null) {
+                PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[0]);
+                for (PlayNetconfListener listener : toArray) {
+                    if (!listener.isRemove()) {
+                        listener.receive(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+                    }
                 }
             }
+        } catch (Exception e) {
+
         }
 
-        logger.debug("receive from ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
     }
 
     /**
@@ -101,18 +99,21 @@ public class PlayNotification extends IOSubscriber {
      */
     @Override
     public void output(String s) {
-        if (listenerList != null) {
-            Iterator<PlayNetconfListener> iterator = listenerList.iterator();
-            while (iterator.hasNext()){
-                PlayNetconfListener listener=iterator.next();
-                if(listener.isRemove()){
-                    iterator.remove();
-                }else {
-                    listener.send(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+        logger.debug("send to ip:" + this.playNetconfDevice.getMgmt_ip() + " message:" + s);
+        try {
+            if (listenerList != null) {
+                PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[0]);
+                for (PlayNetconfListener listener : toArray) {
+                    if (!listener.isRemove()) {
+
+                        listener.send(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+                    }
                 }
             }
+        } catch (Exception e) {
+
         }
-        logger.debug("send to ip:"+ this.playNetconfDevice.getMgmt_ip()+" message:"+s);
+
     }
 
 

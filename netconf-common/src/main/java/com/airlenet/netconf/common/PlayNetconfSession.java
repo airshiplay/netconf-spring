@@ -156,10 +156,6 @@ public class PlayNetconfSession {
         notification.addListenerList(listener);
     }
 
-    public void removeNetconfSessionListenerList(PlayNetconfListener listener) {
-        notification.removeListenerList(listener);
-    }
-
     public PlayNotification getNotification() {
         return notification;
     }
