@@ -46,6 +46,9 @@ public class PlayNetconfDevice {
         } else {
             NetconfSession netconfSession = device.getSession("defaultPlaySession");
             if (netconfSession == null) {
+                try {
+                    device.close();
+                }catch (Exception e){}
                 device.connect(this.remoteUser);
                 notification = new PlayNotification(this);
                 device.newSession(notification, "defaultPlaySession");
@@ -91,7 +94,7 @@ public class PlayNetconfDevice {
                 device.newSession(notification, stream);
             } catch (Exception e) {//device 断链，重新连接
                 try {
-                    closeNetconfSession(stream);
+                    close();
                 } catch (Exception e1) {
                 }
                 device.connect(this.remoteUser);
@@ -117,7 +120,8 @@ public class PlayNetconfDevice {
                 device.newSession(notification, stream);
             } catch (Exception e) {//device 断链，重新连接
                 try {
-                    device.closeSession(stream);
+//                    device.closeSession(stream);
+                    device.close();
                 } catch (Exception e1) {
                 }
                 device.connect(this.remoteUser);
@@ -140,6 +144,7 @@ public class PlayNetconfDevice {
     }
 
     public void close() {
+        connSessionMap.clear();
         device.close();
     }
 
