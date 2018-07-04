@@ -117,7 +117,10 @@ public class PlayNetconfDevice {
         if (streamSession != null) {
             PlayNotification notification = streamSession.getNotification();
             try {
-                device.newSession(notification, stream);
+                NetconfSession netconfSession = device.getSession(stream);
+                if(netconfSession ==null){
+                    device.newSession(notification, stream);
+                }
             } catch (Exception e) {//device 断链，重新连接
                 try {
 //                    device.closeSession(stream);

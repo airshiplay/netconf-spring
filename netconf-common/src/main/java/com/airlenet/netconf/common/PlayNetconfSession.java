@@ -37,7 +37,7 @@ public class PlayNetconfSession {
                                 PlayNetconfSession.this.netconfSession.receiveNotification();
                                 continue;
                             }catch (IOException e) {
-                                logger.error("receive notification failed"+e);
+                                logger.error("receive notification failed ",e);
                                 if(resume){
                                     notification.resume();
                                 } else {
@@ -45,7 +45,7 @@ public class PlayNetconfSession {
                                 }
                                 break;
                             } catch (JNCException e) {
-                                logger.error("receive notification failed"+e);
+                                logger.error("receive notification failed ",e);
                                 if(resume){
                                     notification.resume();
                                 } else {
@@ -53,7 +53,7 @@ public class PlayNetconfSession {
                                 }
                                 break;
                             }catch (Exception e) {
-                                logger.error("receive notification failed"+e);
+                                logger.error("receive notification failed ",e);
                                 if(e instanceof SAXException){
                                     continue;
                                 }
