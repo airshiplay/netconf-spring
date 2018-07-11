@@ -52,8 +52,9 @@ public class PlayNotification extends IOSubscriber {
             @Override
             public void run() {
                 try {
-                    playNetconfDevice.resumSubscription(PlayNotification.this.getStream());
-                    input(String.format(OnlineNotification, simpleDateFormat.format(new Date())));
+                    if(0 == playNetconfDevice.resumSubscription(PlayNotification.this.getStream())){
+                        input(String.format(OnlineNotification, simpleDateFormat.format(new Date())));//恢复成功，发送connect
+                    }//正常不需要恢复，不发送connect
                     cancel();//恢复成功，取消定时
                 } catch (IOException e) {
                     logger.warn("", e);

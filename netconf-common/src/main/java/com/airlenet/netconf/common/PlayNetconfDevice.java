@@ -112,7 +112,7 @@ public class PlayNetconfDevice {
         createSubscription(stream, listener, true);
     }
 
-    protected void resumSubscription(String stream) throws IOException, JNCException {
+    protected int resumSubscription(String stream) throws IOException, JNCException {
         PlayNetconfSession streamSession = connSessionMap.get(stream);
         if (streamSession != null) {
             PlayNotification notification = streamSession.getNotification();
@@ -133,6 +133,9 @@ public class PlayNetconfDevice {
             NetconfSession netconfSession = device.getSession(stream);
             netconfSession.createSubscription(stream);
             streamSession.receiveNotification(netconfSession);
+            return 0;
+        }else {
+            return -1;
         }
     }
 
