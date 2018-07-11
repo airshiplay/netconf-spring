@@ -57,13 +57,13 @@ public class PlayNotification extends IOSubscriber {
                     }//正常不需要恢复，不发送connect
                     cancel();//恢复成功，取消定时
                 } catch (IOException e) {
-                    logger.warn("", e);
+                    logger.warn("device "+playNetconfDevice.getMgmt_ip(), e);
                     input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 } catch (JNCException e) {
-                    logger.warn("", e);
+                    logger.warn("device "+playNetconfDevice.getMgmt_ip(), e);
                     input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 } catch (Exception e) {
-                    logger.warn("", e);
+                    logger.warn("device "+playNetconfDevice.getMgmt_ip(), e);
                     input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 }
             }
