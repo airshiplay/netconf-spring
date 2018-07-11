@@ -1,6 +1,8 @@
 package com.airlenet.netconf.common;
 
 import com.tailf.jnc.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,7 +13,7 @@ import java.util.List;
  * Created by airlenet on 17/8/24.
  */
 public class PlayNetconfDevice {
-
+    private static final Logger logger = LoggerFactory.getLogger(PlayNetconfDevice.class);
     private Long id;
     private String remoteUser;
     private String password;
@@ -23,7 +25,6 @@ public class PlayNetconfDevice {
      */
     private boolean openTransaction;
 
-    private PlayNetconfSession playNetconfSession;
     protected transient HashMap<String, PlayNetconfSession> connSessionMap = new HashMap<>();
 
     public PlayNetconfDevice(Long id, String remoteUser, String password, String mgmt_ip, int mgmt_port) {
@@ -34,25 +35,37 @@ public class PlayNetconfDevice {
         this.mgmt_port = mgmt_port;
     }
 
-    public PlayNetconfSession getDefaultNetconfSession() throws IOException, JNCException {
+    public synchronized PlayNetconfSession getDefaultNetconfSession() throws IOException, JNCException {
         PlayNotification notification = null;
         if (device == null) {
             DeviceUser duser = new DeviceUser(this.remoteUser, this.remoteUser, this.password);
             device = new Device(this.mgmt_ip, duser, this.mgmt_ip, this.mgmt_port);
+            logger.debug("connect " + mgmt_ip);
             device.connect(this.remoteUser);
             notification = new PlayNotification(this);
+            logger.debug("new Session defaultPlaySession " + mgmt_ip);
             device.newSession(notification, "defaultPlaySession");
             device.getSession("defaultPlaySession");
         } else {
             NetconfSession netconfSession = device.getSession("defaultPlaySession");
             if (netconfSession == null) {
                 try {
-                    device.close();
-                }catch (Exception e){}
-                device.connect(this.remoteUser);
-                notification = new PlayNotification(this);
-                device.newSession(notification, "defaultPlaySession");
-                device.getSession("defaultPlaySession");
+                    logger.debug("new Session defaultPlaySession device " + mgmt_ip);
+                    device.newSession(notification, "defaultPlaySession");
+                    device.getSession("defaultPlaySession");
+                } catch (Exception e) {
+                    try {
+                        logger.debug("close for connect device " + mgmt_ip);
+                        device.close();
+                    } catch (Exception e1) {
+                    }
+                    logger.debug("connect device " + mgmt_ip);
+                    device.connect(this.remoteUser);
+                    notification = new PlayNotification(this);
+                    logger.debug("new Session defaultPlaySession device " + mgmt_ip);
+                    device.newSession(notification, "defaultPlaySession");
+                    device.getSession("defaultPlaySession");
+                }
             }
         }
         PlayNetconfSession defaultPlaySession = connSessionMap.get("defaultPlaySession");
@@ -80,61 +93,69 @@ public class PlayNetconfDevice {
      * @throws IOException
      * @throws JNCException
      */
-    public void createSubscription(String stream, PlayNetconfListener listener, boolean resume) throws IOException, JNCException {
+    public synchronized void createSubscription(String stream, PlayNetconfListener listener, boolean resume) throws IOException, JNCException {
         PlayNetconfSession streamSession = connSessionMap.get(stream);
         if (streamSession == null) {
             PlayNotification notification = new PlayNotification(this, stream);
             notification.addListenerList(listener);
             try {
-                if(device ==null){
+                if (device == null) {
                     DeviceUser duser = new DeviceUser(this.remoteUser, this.remoteUser, this.password);
                     device = new Device(this.mgmt_ip, duser, this.mgmt_ip, this.mgmt_port);
+                    logger.debug("subscription connect device " + mgmt_ip);
                     device.connect(this.remoteUser);
                 }
+                logger.debug("subscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
             } catch (Exception e) {//device 断链，重新连接
                 try {
-                    close();
+                    logger.debug("subscription close device " + mgmt_ip +e.getMessage());
+                    device.close();
                 } catch (Exception e1) {
                 }
+                logger.debug("subscription connect device " + mgmt_ip);
                 device.connect(this.remoteUser);
+                logger.debug("subscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
             }
             NetconfSession netconfSession = device.getSession(stream);
             netconfSession.createSubscription(stream);
+            logger.debug("subscription createSubscription " + stream + " device " + mgmt_ip);
             connSessionMap.put(stream, new PlayNetconfSession(this, netconfSession, notification, resume));
         } else {
             streamSession.addNetconfSessionListenerList(listener);
         }
     }
 
-    public void createSubscription(String stream, PlayNetconfListener listener) throws IOException, JNCException {
+    public synchronized void createSubscription(String stream, PlayNetconfListener listener) throws IOException, JNCException {
         createSubscription(stream, listener, true);
     }
 
-    protected int resumSubscription(String stream) throws IOException, JNCException {
+    protected synchronized int resumSubscription(String stream) throws IOException, JNCException {
         PlayNetconfSession streamSession = connSessionMap.get(stream);
         if (streamSession != null) {
             PlayNotification notification = streamSession.getNotification();
             try {
                 NetconfSession netconfSession = device.getSession(stream);
-                if(netconfSession ==null){
+                if (netconfSession == null) {
                     device.newSession(notification, stream);
                 }
             } catch (Exception e) {//device 断链，重新连接
                 try {
-//                    device.closeSession(stream);
+                    logger.debug("resumSubscription close device " + mgmt_ip);
                     device.close();
                 } catch (Exception e1) {
                 }
+                logger.debug("resumSubscription connect device " + mgmt_ip);
                 device.connect(this.remoteUser);
+                logger.debug("resumSubscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
             }
             NetconfSession netconfSession = device.getSession(stream);
             netconfSession.createSubscription(stream);
             streamSession.receiveNotification(netconfSession);
             return 0;
-        }else {
+        } else {
             return -1;
         }
     }
@@ -180,19 +201,5 @@ public class PlayNetconfDevice {
 
     public void setOpenTransaction(boolean openTransaction) {
         this.openTransaction = openTransaction;
-    }
-
-
-    static private class SessionConnData {
-        String sessionName;
-        SSHSession sshSession;
-        PlayNetconfSession session;
-        PlayNotification notification;
-
-        SessionConnData(String n, PlayNetconfSession s, PlayNotification noti) {
-            sessionName = n;
-            session = s;
-            notification = noti;
-        }
     }
 }
