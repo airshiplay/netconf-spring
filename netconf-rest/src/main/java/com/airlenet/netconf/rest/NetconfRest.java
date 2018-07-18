@@ -23,7 +23,7 @@ public class NetconfRest {
     @Autowired
     SysService sysService;
 
-    PlayNetconfDevice netconfDevice = new PlayNetconfDevice(1L, "admin", "admin", "172.16.129.181", 2022);
+    PlayNetconfDevice netconfDevice = new PlayNetconfDevice(1L, "admin", "admin", "172.19.102.122", 2022);
     @Autowired
     NetconfService netconfService;
 
@@ -45,7 +45,7 @@ public class NetconfRest {
     @ResponseBody
     public Object get() {
         try {
-            return Result.success().setContent(netconfService.get(netconfDevice));
+            return Result.success().setContent(netconfService.get(netconfDevice).toXMLString());
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
@@ -55,11 +55,11 @@ public class NetconfRest {
         }
     }
 
-    @RequestMapping("/get/{xpath}")
+    @PostMapping("get/xpath")
     @ResponseBody
-    public Object getXpath(@PathVariable("xpath") String xpath) {
+    public Object getXpath(@RequestBody String xpath) {
         try {
-            return Result.success().setContent(netconfService.get(netconfDevice, xpath));
+            return (netconfService.get(netconfDevice, xpath).toXMLString());
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
@@ -72,7 +72,7 @@ public class NetconfRest {
     @ResponseBody
     public Object getConfig() {
         try {
-            return netconfService.getConfig(netconfDevice);
+            return netconfService.getConfig(netconfDevice).toXMLString();
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
@@ -84,9 +84,9 @@ public class NetconfRest {
 
     @RequestMapping(value = "/getConfig",method = RequestMethod.POST)
     @ResponseBody
-    public Object getConfigPost(@RequestBody Element element) {
+    public Object getConfigPost(@RequestBody String content) {
         try {
-            return netconfService.getConfig(netconfDevice,element);
+            return netconfService.getConfig(netconfDevice, Element.readXml(content)).toXMLString();
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
@@ -96,11 +96,25 @@ public class NetconfRest {
         }
     }
 
-    @RequestMapping("/getConfig/{xpath}")
+    @RequestMapping("/getConfig/xpath")
     @ResponseBody
-    public Object getConfigXpath(@PathVariable("xpath") String xpath) {
+    public Object getConfigXpath(@RequestBody String xpath) {
         try {
-            return netconfService.getConfig(netconfDevice, xpath);
+            return netconfService.getConfig(netconfDevice, xpath).toXMLString();
+        } catch (IOException e) {
+            return Result.exception().message(e.getMessage());
+        } catch (JNCException e) {
+            return Result.exception().setContent(e.getRpcErrors());
+        } catch (Exception e) {
+            return Result.exception().message(e.getMessage());
+        }
+    }
+
+    @RequestMapping("/rpc")
+    @ResponseBody
+    public Object rpc(@RequestBody String content) {
+        try {
+            return  (netconfService.callRpc(netconfDevice, Element.readXml(content)).toXMLString());
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {

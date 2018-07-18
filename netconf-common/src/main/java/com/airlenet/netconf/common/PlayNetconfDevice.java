@@ -93,7 +93,8 @@ public class PlayNetconfDevice {
      * @throws IOException
      * @throws JNCException
      */
-    public synchronized void createSubscription(String stream, PlayNetconfListener listener, boolean resume) throws IOException, JNCException {
+    public synchronized void createSubscription(String stream, String eventFilter,
+                                                String startTime, String stopTime, PlayNetconfListener listener, boolean resume) throws IOException, JNCException {
         PlayNetconfSession streamSession = connSessionMap.get(stream);
         if (streamSession == null) {
             PlayNotification notification = new PlayNotification(this, stream);
@@ -119,12 +120,16 @@ public class PlayNetconfDevice {
                 device.newSession(notification, stream);
             }
             NetconfSession netconfSession = device.getSession(stream);
-            netconfSession.createSubscription(stream);
+            netconfSession.createSubscription(stream,eventFilter,startTime,stopTime);
             logger.debug("subscription createSubscription " + stream + " device " + mgmt_ip);
             connSessionMap.put(stream, new PlayNetconfSession(this, netconfSession, notification, resume));
         } else {
             streamSession.addNetconfSessionListenerList(listener);
         }
+    }
+
+    public synchronized void createSubscription(String stream,  PlayNetconfListener listener, boolean resume) throws IOException, JNCException {
+        createSubscription(stream,null,null,null, listener, resume);
     }
 
     public synchronized void createSubscription(String stream, PlayNetconfListener listener) throws IOException, JNCException {

@@ -23,9 +23,9 @@
     </properties>
     <modules>
         <module>netconf-common</module>
-        <!--<module>yang-model</module>-->
-        <!--<module>netconf-service</module>-->
-        <!--<module>netconf-rest</module>-->
+        <module>yang-model</module>
+        <module>netconf-service</module>
+        <module>netconf-rest</module>
     </modules>
     <dependencyManagement>
         <dependencies>

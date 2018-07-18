@@ -29,6 +29,12 @@ public class NetconfService {
         }
     }
 
+    public NodeSet callRpc(PlayNetconfDevice playNetconfDevice, Element element) throws IOException, JNCException {
+        PlayNetconfSession playNetconfSession = playNetconfDevice.getDefaultNetconfSession();
+        NodeSet nodeSet = playNetconfSession.callRpc(element);
+        return nodeSet;
+    }
+
     public NodeSet get(PlayNetconfDevice playNetconfDevice) throws IOException, JNCException {
         PlayNetconfSession playNetconfSession = playNetconfDevice.getDefaultNetconfSession();
         NodeSet nodeSet = playNetconfSession.get();
@@ -73,6 +79,7 @@ public class NetconfService {
         NodeSet nodeSet = playNetconfSession.getConfig(element);
         return nodeSet;
     }
+
     public NodeSet getConfig(PlayNetconfDevice netconfDevice) throws IOException, JNCException{
         PlayNetconfSession playNetconfSession = netconfDevice.getDefaultNetconfSession();
         NodeSet nodeSet = playNetconfSession.getConfig();
