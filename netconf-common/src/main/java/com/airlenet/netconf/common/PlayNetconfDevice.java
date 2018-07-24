@@ -174,7 +174,9 @@ public class PlayNetconfDevice {
         connSessionMap.remove(stream);
         device.closeSession(stream);
     }
-
+    public void closeSession(String stream) {
+        device.closeSession(stream);
+    }
     public void close() {
         connSessionMap.clear();
         device.close();

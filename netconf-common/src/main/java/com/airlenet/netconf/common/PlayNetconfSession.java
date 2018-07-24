@@ -36,6 +36,15 @@ public class PlayNetconfSession {
                             try {
                                 PlayNetconfSession.this.netconfSession.receiveNotification();
                                 continue;
+                            }catch (SessionClosedException e) {
+                                logger.error("device "+playNetconfDevic.getMgmt_ip()+" receive notification failed ",e);
+                                if(resume){//关闭session然后重建
+                                    playNetconfDevic.closeSession(notification.getStream());
+                                    notification.resume();
+                                } else {
+                                    playNetconfDevic.closeNetconfSession(notification.getStream());
+                                }
+                                break;
                             }catch (IOException e) {
                                 logger.error("device "+playNetconfDevic.getMgmt_ip()+" receive notification failed ",e);
                                 if(resume){

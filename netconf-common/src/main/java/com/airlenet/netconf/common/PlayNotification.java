@@ -2,6 +2,7 @@ package com.airlenet.netconf.common;
 
 import com.tailf.jnc.IOSubscriber;
 import com.tailf.jnc.JNCException;
+import com.tailf.jnc.SessionClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,10 @@ public class PlayNotification extends IOSubscriber {
                         input(String.format(OnlineNotification, simpleDateFormat.format(new Date())));//恢复成功，发送connect
                     }//正常不需要恢复，不发送connect
                     cancel();//恢复成功，取消定时
+                } catch (SessionClosedException e) {
+                    logger.warn("device "+playNetconfDevice.getMgmt_ip(), e);
+                    playNetconfDevice.closeSession(PlayNotification.this.getStream());//删除已关闭的session，等待重建
+                    input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 } catch (IOException e) {
                     logger.warn("device "+playNetconfDevice.getMgmt_ip(), e);
                     input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
