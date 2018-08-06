@@ -39,7 +39,11 @@ public class PlayNetconfSession {
                             }catch (SessionClosedException e) {
                                 logger.error("device "+playNetconfDevic.getMgmt_ip()+" receive notification failed ",e);
                                 if(resume){//关闭session然后重建
-                                    playNetconfDevic.closeSession(notification.getStream());
+                                    try {
+                                        playNetconfDevic.closeSession(notification.getStream());
+                                    } catch (Exception ex){
+                                        logger.error("device "+playNetconfDevic.getMgmt_ip()+" close session failed for rebuild session",e);
+                                    }
                                     notification.resume();
                                 } else {
                                     playNetconfDevic.closeNetconfSession(notification.getStream());

@@ -159,8 +159,10 @@ public class PlayNetconfDevice {
             NetconfSession netconfSession = device.getSession(stream);
             netconfSession.createSubscription(stream);
             streamSession.receiveNotification(netconfSession);
+            logger.debug("resumSubscription receiveNotification " + stream + " device " + mgmt_ip);
             return 0;
         } else {
+            logger.debug("resumSubscription not exists " + stream + " device " + mgmt_ip);
             return -1;
         }
     }
