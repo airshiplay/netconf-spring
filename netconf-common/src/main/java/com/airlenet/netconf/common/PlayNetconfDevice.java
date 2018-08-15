@@ -180,6 +180,7 @@ public class PlayNetconfDevice {
         device.closeSession(stream);
     }
     public void close() {
+        logger.debug("close device" + mgmt_ip);
         connSessionMap.clear();
         device.close();
     }
