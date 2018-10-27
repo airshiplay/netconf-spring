@@ -37,7 +37,7 @@ public class PlayNetconfSession {
                                 PlayNetconfSession.this.netconfSession.receiveNotification();
                                 continue;
                             }catch (SessionClosedException e) {
-                                logger.error("device "+playNetconfDevic.getMgmt_ip()+" receive notification failed ",e);
+                                logger.error("device " + playNetconfDevic.getMgmt_ip()+" resume:"+ resume + notification.getStream() +" receive notification failed ",e);
                                 if(resume){//关闭session然后重建
                                     try {
                                         playNetconfDevic.closeSession(notification.getStream());
@@ -50,7 +50,7 @@ public class PlayNetconfSession {
                                 }
                                 break;
                             }catch (IOException e) {
-                                logger.error("device "+playNetconfDevic.getMgmt_ip()+" receive notification failed ",e);
+                                logger.error("device "+ playNetconfDevic.getMgmt_ip()+" resume:"+ resume + notification.getStream() +" receive notification failed ",e);
                                 if(resume){
                                     notification.resume();
                                 } else {
@@ -58,7 +58,7 @@ public class PlayNetconfSession {
                                 }
                                 break;
                             } catch (JNCException e) {
-                                logger.error("device "+playNetconfDevic.getMgmt_ip()+" receive notification failed ",e);
+                                logger.error("device " + playNetconfDevic.getMgmt_ip()+" resume:"+ resume + notification.getStream() +" receive notification failed ",e);
                                 if(resume){
                                     notification.resume();
                                 } else {
@@ -66,7 +66,7 @@ public class PlayNetconfSession {
                                 }
                                 break;
                             }catch (Exception e) {
-                                logger.error("device "+playNetconfDevic.getMgmt_ip()+" receive notification failed ",e);
+                                logger.error("device " + playNetconfDevic.getMgmt_ip()+" resume:"+ resume + notification.getStream() +" receive notification failed ",e);
                                 if(e instanceof SAXException){
                                     continue;
                                 }

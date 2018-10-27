@@ -82,7 +82,7 @@ public class PlayNotification extends IOSubscriber {
      */
     @Override
     public void input(String s) {
-        logger.debug("receive from ip:" + this.playNetconfDevice.getMgmt_ip() + " message:" + s);
+        logger.debug("receive from ip:" + this.playNetconfDevice.getMgmt_ip() + " stream:" + stream + " message:" + s);
         try {
             if (listenerList != null) {
                 PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[0]);
@@ -105,7 +105,7 @@ public class PlayNotification extends IOSubscriber {
      */
     @Override
     public void output(String s) {
-        logger.debug("send to ip:" + this.playNetconfDevice.getMgmt_ip() + " message:" + s);
+        logger.debug("send to ip:" + this.playNetconfDevice.getMgmt_ip() + " stream:" + stream + " message:" + s);
         try {
             if (listenerList != null) {
                 PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[0]);
