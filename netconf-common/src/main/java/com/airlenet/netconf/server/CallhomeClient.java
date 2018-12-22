@@ -48,7 +48,7 @@ public class CallhomeClient implements Runnable,PlayNetconfListener {
         } catch (IOException e) {
             logger.error("",e);
         } catch (JNCException e) {
-            logger.error("",e);
+            logger.error(""+e.toString(),e);
         }
     }
 

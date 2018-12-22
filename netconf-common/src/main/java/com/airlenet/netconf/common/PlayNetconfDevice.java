@@ -28,6 +28,7 @@ public class PlayNetconfDevice {
     private int connectTimeout = 0;
     //
     private int defaultReadTimeout = 0;
+    private int subscriptionReadTimeout = 0;
     private Socket socket;
     /**
      * true service拦截，开启事物处理；false 自己开启事物处理
@@ -66,6 +67,10 @@ public class PlayNetconfDevice {
      */
     public void setDefaultReadTimeout(int defaultReadTimeout) {
         this.defaultReadTimeout = defaultReadTimeout;
+    }
+
+    public void setSubscriptionReadTimeout(int subscriptionReadTimeout) {
+        this.subscriptionReadTimeout = subscriptionReadTimeout;
     }
 
     public synchronized PlayNetconfSession getDefaultNetconfSession() throws IOException, JNCException {
@@ -146,6 +151,7 @@ public class PlayNetconfDevice {
                 }
                 logger.debug("subscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
+                device.setReadTimeout(stream,subscriptionReadTimeout);
             } catch (Exception e) {//device 断链，重新连接
                 try {
                     logger.debug("subscription close device " + mgmt_ip + e.getMessage());
@@ -156,6 +162,7 @@ public class PlayNetconfDevice {
                 device.connect(this.remoteUser, null, connectTimeout);
                 logger.debug("subscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
+                device.setReadTimeout(stream,subscriptionReadTimeout);
             }
             NetconfSession netconfSession = device.getSession(stream);
             netconfSession.createSubscription(stream, eventFilter, startTime, stopTime);

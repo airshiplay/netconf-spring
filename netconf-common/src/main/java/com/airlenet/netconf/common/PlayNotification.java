@@ -53,22 +53,28 @@ public class PlayNotification extends IOSubscriber {
             @Override
             public void run() {
                 try {
-                    if(0 == playNetconfDevice.resumSubscription(PlayNotification.this.getStream())){
+                    if (0 == playNetconfDevice.resumSubscription(PlayNotification.this.getStream())) {
                         input(String.format(OnlineNotification, simpleDateFormat.format(new Date())));//恢复成功，发送connect
                     }//正常不需要恢复，不发送connect
                     cancel();//恢复成功，取消定时
                 } catch (SessionClosedException e) {
-                    logger.warn("device "+playNetconfDevice.getMgmt_ip(), e);
+                    logger.warn("device " + playNetconfDevice.getMgmt_ip(), e);
                     playNetconfDevice.closeSession(PlayNotification.this.getStream());//删除已关闭的session，等待重建
                     input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 } catch (IOException e) {
-                    logger.warn("device "+playNetconfDevice.getMgmt_ip(), e);
+                    logger.warn("device " + playNetconfDevice.getMgmt_ip(), e);
                     input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 } catch (JNCException e) {
-                    logger.warn("device "+playNetconfDevice.getMgmt_ip(), e);
-                    input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
+                    if (e.toString().contains("A subscription is already active for this session")) {
+                        input(String.format(OnlineNotification, simpleDateFormat.format(new Date())));//恢复成功，发送connect
+                        cancel();//恢复成功，取消定时
+                        return;
+                    } else {
+                        logger.warn("device " + playNetconfDevice.getMgmt_ip() + e.toString(), e);
+                        input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
+                    }
                 } catch (Exception e) {
-                    logger.warn("device "+playNetconfDevice.getMgmt_ip(), e);
+                    logger.warn("device " + playNetconfDevice.getMgmt_ip(), e);
                     input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                 }
             }
@@ -85,10 +91,10 @@ public class PlayNotification extends IOSubscriber {
         logger.debug("receive from ip:" + this.playNetconfDevice.getMgmt_ip() + " stream:" + stream + " message:" + s);
         try {
             if (listenerList != null) {
-                PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[0]);
+                PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[listenerList.size()]);
                 for (PlayNetconfListener listener : toArray) {
                     if (!listener.isRemove()) {
-                        listener.receive(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+                        listener.receive(this.playNetconfDevice.getId(),stream, this.playNetconfDevice.getMgmt_ip(), s);
                     }
                 }
             }
@@ -108,11 +114,11 @@ public class PlayNotification extends IOSubscriber {
         logger.debug("send to ip:" + this.playNetconfDevice.getMgmt_ip() + " stream:" + stream + " message:" + s);
         try {
             if (listenerList != null) {
-                PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[0]);
+                PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[listenerList.size()]);
                 for (PlayNetconfListener listener : toArray) {
                     if (!listener.isRemove()) {
 
-                        listener.send(this.playNetconfDevice.getId(), this.playNetconfDevice.getMgmt_ip(), s);
+                        listener.send(this.playNetconfDevice.getId(),stream, this.playNetconfDevice.getMgmt_ip(), s);
                     }
                 }
             }

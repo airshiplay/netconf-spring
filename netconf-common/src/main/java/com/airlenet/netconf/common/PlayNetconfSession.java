@@ -58,7 +58,10 @@ public class PlayNetconfSession {
                                 }
                                 break;
                             } catch (JNCException e) {
-                                logger.error("device " + playNetconfDevic.getMgmt_ip()+" resume:"+ resume + notification.getStream() +" receive notification failed ",e);
+                                if (e.toString().startsWith("Timeout error:")){//获取监听数据超时，继续获取数据
+                                    continue;
+                                }
+                                logger.error("device " + playNetconfDevic.getMgmt_ip()+" resume:"+ resume + notification.getStream() +" receive notification failed "+e.toString(),e);
                                 if(resume){
                                     notification.resume();
                                 } else {

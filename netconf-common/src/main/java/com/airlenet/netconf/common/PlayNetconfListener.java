@@ -9,8 +9,8 @@ import java.util.Map;
  */
 public interface PlayNetconfListener {
     Map<Object,Boolean> thisMoveMap = new HashMap<>();
-    public void receive(Long id,String ip,String msg);
-    public void send(Long id,String ip,String msg);
+    public void receive(Long id,String stream,String ip,String msg);
+    public void send(Long id,String stream,String ip,String msg);
     public default void removeSelf(){
         thisMoveMap.put(this,true);
     }

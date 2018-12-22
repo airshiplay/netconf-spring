@@ -35,7 +35,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().setContent(e.getRpcErrors());
+            return Result.exception().setContent(e.toString());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -49,7 +49,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().setContent(e.getRpcErrors());
+            return Result.exception().setContent(e.toString());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -63,7 +63,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().setContent(e.getRpcErrors());
+            return Result.exception().setContent(e.toString());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -76,7 +76,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().setContent(e.getRpcErrors());
+            return Result.exception().setContent(e.toString());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -90,7 +90,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().setContent(e.getRpcErrors());
+            return Result.exception().setContent(e.toString());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -104,7 +104,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().setContent(e.getRpcErrors());
+            return Result.exception().setContent(e.toString());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
@@ -118,7 +118,7 @@ public class NetconfRest {
         } catch (IOException e) {
             return Result.exception().message(e.getMessage());
         } catch (JNCException e) {
-            return Result.exception().setContent(e.getRpcErrors());
+            return Result.exception().setContent(e.toString());
         } catch (Exception e) {
             return Result.exception().message(e.getMessage());
         }
