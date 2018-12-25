@@ -2,7 +2,6 @@ import com.airlenet.netconf.common.PlayNetconfDevice;
 import com.airlenet.netconf.common.PlayNetconfSession;
 import com.tailf.jnc.Element;
 import com.tailf.jnc.JNCException;
-import com.tailf.jnc.NodeSet;
 
 import java.io.IOException;
 

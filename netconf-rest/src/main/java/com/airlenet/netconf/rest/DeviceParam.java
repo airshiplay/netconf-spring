@@ -1,11 +1,23 @@
 package com.airlenet.netconf.rest;
 
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class DeviceParam {
+
+    @ApiModelProperty(value = "Device Id")
     private Long id;
+
+    @ApiModelProperty(value = "Device Netconf IP")
     private String ip;
+
+    @ApiModelProperty(value = "Device Netconf port")
     private int port;
+
+    @ApiModelProperty(value = "Device Netconf Account Username")
     private String user;
+
+    @ApiModelProperty(value = "Device Netconf Account Password")
     private String pass;
     private String sn;
 

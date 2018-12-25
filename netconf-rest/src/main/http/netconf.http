@@ -1,0 +1,50 @@
+# For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection).
+#
+# Following HTTP Request Live Templates are available:
+# * 'gtrp' and 'gtr' create a GET request with or without query parameters;
+# * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
+# * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+
+### GET Device Version
+GET http://localhost:8080/netconf/1/version
+Accept: application/json;charset=UTF-8
+
+#### GET Device RUNTIME INFO BY XML
+POST http://localhost:8080/netconf/1/subtree
+Accept: application/xml;charset=UTF-8
+Content-Type: application/xml;charset=UTF-8
+
+
+<smgr-session xmlns="http://certusnet.com/nfv/flexbng/certusnet-flexbng-smgr" xmlns:smgr="http://certusnet.com/nfv/flexbng/certusnet-flexbng-smgr">
+<all>
+  <user>
+    <user-type/>            <info/>          </user>
+</all>
+</smgr-session>
+
+
+
+#### GET Device RUNTIME INFO BY XPATH
+POST http://localhost:8080/netconf/1/xpath
+Accept: application/xml;charset=UTF-8
+
+/interfaces-state
+
+#### GET Device RUNTIME INFO BY XPATH
+POST http://localhost:8080/netconf/1/xpath
+Accept: application/xml;charset=UTF-8
+
+/sys-info
+
+
+###GET ALL Device Config
+GET http://localhost:8080/netconf/1/config
+Accept: application/xml;charset=UTF-8
+
+### Post GET Device Config By XPATH
+POST http://localhost:8080/netconf/1/config/xpath
+Accept: application/json;charset=UTF-8
+
+/router
+
+###

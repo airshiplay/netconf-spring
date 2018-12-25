@@ -9,13 +9,7 @@
 package com.airlenet.yang.model.demo.employees;
 
 import com.airlenet.yang.model.demo.Demo;
-import com.tailf.jnc.Element;
-import com.tailf.jnc.JNCException;
-import com.tailf.jnc.Leaf;
-import com.tailf.jnc.YangElement;
-import com.tailf.jnc.YangString;
-import com.tailf.jnc.YangUInt32;
-import com.tailf.jnc.YangUInt8;
+import com.tailf.jnc.*;
 
 /**
  * This class represents an element from 
