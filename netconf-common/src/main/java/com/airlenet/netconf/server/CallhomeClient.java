@@ -39,7 +39,7 @@ public class CallhomeClient implements Runnable,PlayNetconfListener {
             },10);
 
 
-            PlayNetconfDevice playNetconfDevice = new PlayNetconfDevice(1L, device);
+            PlayNetconfDevice playNetconfDevice = new PlayNetconfDevice(1L,"", device);
             playNetconfDevice.getDefaultNetconfSession();
 
             playNetconfDevice.createSubscription("alarm",this);
@@ -53,12 +53,12 @@ public class CallhomeClient implements Runnable,PlayNetconfListener {
     }
 
     @Override
-    public void receive(Long id, String ip, String msg) {
+    public void receive(Long id, String stream, String ip, String msg) {
 
     }
 
     @Override
-    public void send(Long id, String ip, String msg) {
+    public void send(Long id, String stream, String ip, String msg) {
 
     }
 }

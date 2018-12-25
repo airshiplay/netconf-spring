@@ -1,8 +1,5 @@
 package com.airlenet.netconf.server;
 
-import com.tailf.jnc.Device;
-import com.tailf.jnc.DeviceUser;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;

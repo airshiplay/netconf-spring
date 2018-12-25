@@ -8,12 +8,7 @@
 
 package com.airlenet.yang.model.tailfCommon;
 
-import com.tailf.jnc.JNCException;
-import com.tailf.jnc.SchemaNode;
-import com.tailf.jnc.SchemaParser;
-import com.tailf.jnc.SchemaTree;
-import com.tailf.jnc.Tagpath;
-import com.tailf.jnc.YangElement;
+import com.tailf.jnc.*;
 
 import java.util.HashMap;
 

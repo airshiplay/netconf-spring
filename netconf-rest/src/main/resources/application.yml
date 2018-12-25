@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: http netconf demo
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  datasource:
+    url: jdbc:h2:~/data/db/test
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    generate-ddl: true
+server:
+  port: 8080
+  http2:
+    enabled: true
+logging:
+  level:
+    root: info
+    org.springframework.jdbc.datasource.init : debug
+    com.airlenet.netconf.common : debug

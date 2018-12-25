@@ -1,16 +1,15 @@
 package com.airlenet.netconf.common;
 
-import ch.ethz.ssh2.KnownHosts;
-import ch.ethz.ssh2.ServerHostKeyVerifier;
-import com.tailf.jnc.*;
+import com.tailf.jnc.Device;
+import com.tailf.jnc.DeviceUser;
+import com.tailf.jnc.JNCException;
+import com.tailf.jnc.NetconfSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by airlenet on 17/8/24.
@@ -37,6 +36,14 @@ public class PlayNetconfDevice {
 
     protected transient HashMap<String, PlayNetconfSession> connSessionMap = new HashMap<>();
 
+    public PlayNetconfDevice(Long id, String mgmt_ip, int mgmt_port, String remoteUser, String password) {
+        this.id = id;
+        this.remoteUser = remoteUser;
+        this.password = password;
+        this.mgmt_ip = mgmt_ip;
+        this.mgmt_port = mgmt_port;
+    }
+
     public PlayNetconfDevice(Long id, String remoteUser, String password, String mgmt_ip, int mgmt_port) {
         this.id = id;
         this.remoteUser = remoteUser;
@@ -45,7 +52,7 @@ public class PlayNetconfDevice {
         this.mgmt_port = mgmt_port;
     }
 
-    public PlayNetconfDevice(Long id, Device device) {
+    public PlayNetconfDevice(Long id, String serialNumber, Device device) {
         this.id = id;
         this.device = device;
         this.serialNumber = serialNumber;
@@ -151,7 +158,7 @@ public class PlayNetconfDevice {
                 }
                 logger.debug("subscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
-                device.setReadTimeout(stream,subscriptionReadTimeout);
+                device.setReadTimeout(stream, subscriptionReadTimeout);
             } catch (Exception e) {//device 断链，重新连接
                 try {
                     logger.debug("subscription close device " + mgmt_ip + e.getMessage());
@@ -162,7 +169,7 @@ public class PlayNetconfDevice {
                 device.connect(this.remoteUser, null, connectTimeout);
                 logger.debug("subscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
-                device.setReadTimeout(stream,subscriptionReadTimeout);
+                device.setReadTimeout(stream, subscriptionReadTimeout);
             }
             NetconfSession netconfSession = device.getSession(stream);
             netconfSession.createSubscription(stream, eventFilter, startTime, stopTime);

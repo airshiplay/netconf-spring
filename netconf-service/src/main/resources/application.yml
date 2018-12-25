@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: http netconf service
+  flyway:
+    enabled: true
+    clean-disabled: true
+    locations: classpath:db/migration
+logging:
+  level:
+    root: info
+    org.springframework.jdbc.datasource.init : debug
