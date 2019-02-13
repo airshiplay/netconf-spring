@@ -62,6 +62,17 @@ public class PlayNetconfDevice {
         return this.device;
     }
 
+    public void updateUsernamePassword(String username, String password) {
+        if (username.equals(this.remoteUser) && password.equals(this.password)) {
+
+        } else if (device != null) {
+            device.close();
+            this.remoteUser = username;
+            this.password = password;
+            device = null;
+        }
+    }
+
     /**
      * @param connectTimeout milliseconds.
      */

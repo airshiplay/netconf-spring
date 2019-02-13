@@ -2,10 +2,16 @@ package com.airlenet.netconf.rest;
 
 import com.airlenet.data.domain.Result;
 import com.airlenet.netconf.common.PlayNetconfDevice;
+import com.airlenet.netconf.model.DeviceModel;
 import com.airlenet.netconf.service.DeviceService;
+import com.airlenet.webapp.EntityController;
+import com.airlenet.webapp.EntityRestController;
+import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.function.Function;
@@ -30,6 +36,12 @@ public class DeviceRest {
             }
         }).distinct()
                 .collect(Collectors.toList()).toArray());
+    }
+
+    @ApiOperation(value = "Device List")
+    @RequestMapping(value = "/page", method = RequestMethod.GET)
+    public Page page(Pageable pageable) {
+        return deviceService.findAll(pageable);
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)

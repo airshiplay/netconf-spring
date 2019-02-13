@@ -3,71 +3,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.airlenet.netconf</groupId>
-    <artifactId>play-netconf</artifactId>
+    <groupId>com.airlenet.network</groupId>
     <version>1.2.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>play yang</name>
-    <description>play netconf</description>
-    <url>https://github.com/airshiplay/play-netconf</url>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <encoding>UTF-8</encoding>
-        <java.version>1.8</java.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+    <artifactId>network-datasource</artifactId>
 
-        <springframework.version>4.3.10.RELEASE</springframework.version>
-        <spring-boot.version>2.0.3.RELEASE</spring-boot.version>
-        <spring-cloud.version>Finchley.SR2</spring-cloud.version>
-        <querydsl.version>4.1.4</querydsl.version>
-        <play-boot.version>3.0.0-SNAPSHOT</play-boot.version>
-        <play.yang.version>1.2.0-SNAPSHOT</play.yang.version>
-    </properties>
-    <modules>
-        <module>netconf-common</module>
-        <module>yang-model</module>
-        <module>netconf-service</module>
-        <module>netconf-rest</module>
-        <module>netconf-datasource</module>
-        <module>network-datasource</module>
-        <module>snmp-datasource</module>
-    </modules>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.airlenet</groupId>
-                <artifactId>play-boot-dependencies</artifactId>
-                <version>${play-boot.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-    </dependencies>
-    <licenses>
-        <license>
-            <name>The Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-    </licenses>
     <developers>
         <developer>
             <id>airshiplay</id>

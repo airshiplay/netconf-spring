@@ -69,6 +69,9 @@ public class PlayNotification extends IOSubscriber {
                         input(String.format(OnlineNotification, simpleDateFormat.format(new Date())));//恢复成功，发送connect
                         cancel();//恢复成功，取消定时
                         return;
+                    }else if(e.toString().contains("Message ID mismatch")){//消息错乱，关闭session
+                        playNetconfDevice.closeSession(PlayNotification.this.getStream());//删除已关闭的session，等待重建
+                        input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                     } else {
                         logger.warn("device " + playNetconfDevice.getMgmt_ip() + e.toString(), e);
                         input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));

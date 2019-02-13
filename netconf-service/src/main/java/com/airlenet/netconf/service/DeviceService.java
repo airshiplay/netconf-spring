@@ -5,6 +5,8 @@ import com.airlenet.netconf.common.PlayNetconfDevice;
 import com.airlenet.netconf.model.DeviceModel;
 import com.airlenet.netconf.repository.DeviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +52,9 @@ public class DeviceService extends EntityService<DeviceModel, Long> {
             }
         }).collect(Collectors.toList());
     }
-
+    public Page<DeviceModel> listDevice(Pageable pageable) {
+        return findAll(pageable);
+    }
     public PlayNetconfDevice getDevice(Long id) {
         DeviceModel deviceModel = findOne(id);
         if (deviceModel == null) {
