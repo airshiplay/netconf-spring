@@ -66,7 +66,12 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         if (this.disable) {
             return;
         }
-        holder.dataSource.recycle(this);
+        if (abandoned) {//废弃此链接
+            holder.dataSource.discardConnection(this);
+        } else {//回收链接
+            holder.dataSource.recycle(this);
+        }
+
         this.holder = null;
         closed = true;
     }

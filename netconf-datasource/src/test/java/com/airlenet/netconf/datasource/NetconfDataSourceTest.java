@@ -15,6 +15,8 @@ public class NetconfDataSourceTest {
         NodeSet nodeSet = connection.get("sys-info");
         System.out.println(nodeSet.toXMLString());
 
+        nodeSet = connection.get("sys-info");
+        System.out.println(nodeSet.toXMLString());
 
         NetconfPooledConnection connection1 = dataSource.getConnection();
         System.out.println(connection1);

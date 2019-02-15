@@ -9,6 +9,7 @@ import java.io.IOException;
 public class NetconfConnection implements NetworkConnection {
 
     protected final NetconfSession netconfSession;
+    protected volatile boolean abandoned = false;
     private final long sessionId;
     protected boolean transaction;
 
@@ -26,6 +27,10 @@ public class NetconfConnection implements NetworkConnection {
         } catch (IOException e) {
             throw new NetconfException(e);
         }
+    }
+
+    public boolean isAbandonded() {
+        return this.abandoned;
     }
 
     @Override
@@ -56,41 +61,8 @@ public class NetconfConnection implements NetworkConnection {
             netconfSession.commit();//now commit them 确认提交
         } catch (JNCException e) {
             throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
-        }
-    }
-
-    @Override
-    public NodeSet executeQuery(String req) throws NetworkException {
-        try {
-            Element readXml = Element.readXml(req);
-            NodeSet nodeSet = netconfSession.get(readXml);
-            return nodeSet;
-        } catch (JNCException e) {
-            throw new NetworkException(e);
-        } catch (IOException e) {
-            throw new NetworkException(e);
-        }
-    }
-
-    @Override
-    public Object executeConfig(String req) throws NetworkException {
-        try {
-            Element readXml = Element.readXml(req);
-            NodeSet nodeSet = netconfSession.getConfig(readXml);
-            return nodeSet;
-        } catch (JNCException e) {
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
-        }
-    }
-
-    public NodeSet get(Element subtreeFilter) throws NetworkException {
-        try {
-            return netconfSession.get(subtreeFilter);
-        } catch (JNCException e) {
+        } catch (SessionClosedException e) {
+            abandoned = true;
             throw new NetconfException(e);
         } catch (IOException e) {
             throw new NetconfException(e);
@@ -102,15 +74,35 @@ public class NetconfConnection implements NetworkConnection {
             return netconfSession.get(xpath);
         } catch (JNCException e) {
             throw new NetconfException(e);
+        } catch (SessionClosedException e) {
+            abandoned = true;
+            throw new NetconfException(e);
         } catch (IOException e) {
             throw new NetconfException(e);
         }
     }
 
+    public NodeSet get(Element subtreeFilter) throws NetworkException {
+        try {
+            return netconfSession.get(subtreeFilter);
+        } catch (JNCException e) {
+            throw new NetconfException(e);
+        } catch (SessionClosedException e) {
+            abandoned = true;
+            throw new NetconfException(e);
+        } catch (IOException e) {
+            throw new NetconfException(e);
+        }
+    }
+
+
     public NodeSet getConfig(String xpath) throws NetworkException {
         try {
             return netconfSession.getConfig(xpath);
         } catch (JNCException e) {
+            throw new NetconfException(e);
+        } catch (SessionClosedException e) {
+            abandoned = true;
             throw new NetconfException(e);
         } catch (IOException e) {
             throw new NetconfException(e);
@@ -121,6 +113,9 @@ public class NetconfConnection implements NetworkConnection {
         try {
             return netconfSession.getConfig(subtreeFilter);
         } catch (JNCException e) {
+            throw new NetconfException(e);
+        } catch (SessionClosedException e) {
+            abandoned = true;
             throw new NetconfException(e);
         } catch (IOException e) {
             throw new NetconfException(e);
@@ -140,12 +135,18 @@ public class NetconfConnection implements NetworkConnection {
                 netconfSession.commit();//now commit them 确认提交
             } catch (JNCException e) {
                 throw new NetconfException(e);
+            } catch (SessionClosedException e) {
+                abandoned = true;
+                throw new NetconfException(e);
             } catch (IOException e) {
                 throw new NetconfException(e);
             } finally {
                 try {
                     netconfSession.unlock(NetconfSession.CANDIDATE);
                 } catch (JNCException e) {
+                    throw new NetconfException(e);
+                } catch (SessionClosedException e) {
+                    abandoned = true;
                     throw new NetconfException(e);
                 } catch (IOException e) {
                     throw new NetconfException(e);
@@ -155,6 +156,9 @@ public class NetconfConnection implements NetworkConnection {
             try {
                 netconfSession.editConfig(configTree);
             } catch (JNCException e) {
+                throw new NetconfException(e);
+            } catch (SessionClosedException e) {
+                abandoned = true;
                 throw new NetconfException(e);
             } catch (IOException e) {
                 throw new NetconfException(e);
@@ -166,11 +170,41 @@ public class NetconfConnection implements NetworkConnection {
     public void subscription(String stream) throws NetconfException {
         try {
             netconfSession.createSubscription(stream);
-        } catch (IOException e) {
-            throw new NetconfException(e);
+
+
         } catch (JNCException e) {
+            throw new NetconfException(e);
+        } catch (SessionClosedException e) {
+            abandoned = true;
+            throw new NetconfException(e);
+        } catch (IOException e) {
             throw new NetconfException(e);
         }
     }
 
+    private class Notification implements Runnable {
+        private NetconfSession netconfSession;
+
+
+        public Notification() {
+
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                if (netconfSession.getCapabilities().hasNotification()) {
+
+                    try {
+                        netconfSession.receiveNotification();
+                    } catch (SessionClosedException e) {
+
+                    } catch (Exception e) {
+
+                    }
+                }
+            }
+
+        }
+    }
 }

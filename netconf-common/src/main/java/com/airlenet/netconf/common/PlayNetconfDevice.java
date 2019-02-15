@@ -218,6 +218,7 @@ public class PlayNetconfDevice {
                 device.connect(this.remoteUser, null, connectTimeout);
                 logger.debug("resumSubscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
+//                device.setReadTimeout(stream, subscriptionReadTimeout);
             }
             NetconfSession netconfSession = device.getSession(stream);
             netconfSession.createSubscription(stream);

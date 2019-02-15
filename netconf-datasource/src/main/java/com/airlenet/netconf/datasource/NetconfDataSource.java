@@ -123,13 +123,18 @@ public class NetconfDataSource implements NetworkDataSource {
                 long connectionId = connectCount + 1;
                 String sessionName = connectionId + "";
                 NetconfConnection netconfConnection = null;
-                //stream可以为空
+
                 JNCSubscriber jncSubscriber = new JNCSubscriber(url, stream, subscriber);
-                device.newSession(jncSubscriber, sessionName);
-
+                try {
+                    device.newSession(jncSubscriber, sessionName);
+                } catch (Exception e) {//断链，重新连接 TODO 需将所有连接重置，并重新建联
+                    device.connect(username);
+                    device.newSession(jncSubscriber, sessionName);
+                }
                 netconfConnection = new NetconfSubscriberConnection(device.getSession(sessionName), jncSubscriber);
-                netconfConnection.subscription(stream);
-
+                if (stream != null && !stream.equals("")) {//不为空时，订阅消息
+                    netconfConnection.subscription(stream);
+                }
                 holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
                 connectCount++;
             }
@@ -159,7 +164,23 @@ public class NetconfDataSource implements NetworkDataSource {
         return new NetconfPooledConnection(holder);
     }
 
+    /**
+     * 废弃链接
+     *
+     * @param realConnection
+     */
+    public void discardConnection(NetconfPooledConnection realConnection) {
+        lock.lock();
+        connectCount--;
+        lock.unlock();
+    }
 
+    /**
+     * 回收链接
+     *
+     * @param pooledConnection
+     * @throws NetconfException
+     */
     protected void recycle(NetconfPooledConnection pooledConnection) throws NetconfException {
         try {
             connectionQueue.put(pooledConnection.holder);

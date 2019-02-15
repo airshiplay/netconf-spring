@@ -50,6 +50,8 @@ public class PlayNotification extends IOSubscriber {
 
     public void resume() {
         timer.scheduleAtFixedRate(new TimerTask() {
+            private int sendOfflineCount = 0;
+
             @Override
             public void run() {
                 try {
@@ -60,25 +62,36 @@ public class PlayNotification extends IOSubscriber {
                 } catch (SessionClosedException e) {
                     logger.warn("device " + playNetconfDevice.getMgmt_ip(), e);
                     playNetconfDevice.closeSession(PlayNotification.this.getStream());//删除已关闭的session，等待重建
-                    input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
-                } catch (IOException e) {
-                    logger.warn("device " + playNetconfDevice.getMgmt_ip(), e);
-                    input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
-                } catch (JNCException e) {
-                    if (e.toString().contains("A subscription is already active for this session")) {
-                        input(String.format(OnlineNotification, simpleDateFormat.format(new Date())));//恢复成功，发送connect
-                        cancel();//恢复成功，取消定时
-                        return;
-                    }else if(e.toString().contains("Message ID mismatch")){//消息错乱，关闭session
-                        playNetconfDevice.closeSession(PlayNotification.this.getStream());//删除已关闭的session，等待重建
-                        input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
-                    } else {
-                        logger.warn("device " + playNetconfDevice.getMgmt_ip() + e.toString(), e);
+                    if (sendOfflineCount == 0) {
                         input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
                     }
+                    sendOfflineCount++;
+                } catch (IOException e) {
+                    logger.warn("device " + playNetconfDevice.getMgmt_ip(), e);
+                    if (sendOfflineCount == 0) {
+                        input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
+                    }
+                    sendOfflineCount++;
+                } catch (JNCException e) {
+                    if (e.toString().startsWith("Timeout error:")) {//恢复订阅时，超时
+                        logger.warn("device " + playNetconfDevice.getMgmt_ip() + e.toString(), e);//是否需要关闭session，等待重建
+                    } else if (e.toString().contains("A subscription is already active for this session")) {
+                        cancel();//恢复成功，取消定时
+                    } else if (e.toString().contains("Message ID mismatch")) {//消息错乱，关闭session
+                        playNetconfDevice.closeSession(PlayNotification.this.getStream());//删除已关闭的session，等待重建
+                    } else {
+                        logger.warn("device " + playNetconfDevice.getMgmt_ip() + e.toString(), e);
+                    }
+                    if (sendOfflineCount == 0) {
+                        input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
+                    }
+                    sendOfflineCount++;
                 } catch (Exception e) {
                     logger.warn("device " + playNetconfDevice.getMgmt_ip(), e);
-                    input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
+                    if (sendOfflineCount == 0) {
+                        input(String.format(OfflineNotification, simpleDateFormat.format(new Date())));
+                    }
+                    sendOfflineCount++;
                 }
             }
         }, 1000, 3 * 1000);
@@ -97,7 +110,7 @@ public class PlayNotification extends IOSubscriber {
                 PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[listenerList.size()]);
                 for (PlayNetconfListener listener : toArray) {
                     if (!listener.isRemove()) {
-                        listener.receive(this.playNetconfDevice.getId(),stream, this.playNetconfDevice.getMgmt_ip(), s);
+                        listener.receive(this.playNetconfDevice.getId(), stream, this.playNetconfDevice.getMgmt_ip(), s);
                     }
                 }
             }
@@ -120,8 +133,7 @@ public class PlayNotification extends IOSubscriber {
                 PlayNetconfListener[] toArray = listenerList.toArray(new PlayNetconfListener[listenerList.size()]);
                 for (PlayNetconfListener listener : toArray) {
                     if (!listener.isRemove()) {
-
-                        listener.send(this.playNetconfDevice.getId(),stream, this.playNetconfDevice.getMgmt_ip(), s);
+                        listener.send(this.playNetconfDevice.getId(), stream, this.playNetconfDevice.getMgmt_ip(), s);
                     }
                 }
             }

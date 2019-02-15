@@ -10,9 +10,8 @@ public interface NetworkConnection {
 
     void commit() throws NetworkException;
 
-    Object executeQuery(String req) throws NetworkException;
+    Object get(String req) throws NetworkException;
 
-    Object executeConfig(String req) throws NetworkException;
-
+    Object getConfig(String req) throws NetworkException;
 
 }
