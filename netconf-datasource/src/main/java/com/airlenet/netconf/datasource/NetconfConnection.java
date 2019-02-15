@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class NetconfConnection implements NetworkConnection {
 
-    private final NetconfSession netconfSession;
+    protected final NetconfSession netconfSession;
     private final long sessionId;
     protected boolean transaction;
 

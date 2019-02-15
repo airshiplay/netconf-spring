@@ -32,6 +32,7 @@
         <module>netconf-datasource</module>
         <module>network-datasource</module>
         <module>snmp-datasource</module>
+        <module>netconf-spring</module>
     </modules>
     <dependencyManagement>
         <dependencies>

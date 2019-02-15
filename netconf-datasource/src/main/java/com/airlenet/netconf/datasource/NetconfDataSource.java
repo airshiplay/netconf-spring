@@ -1,51 +1,35 @@
 package com.airlenet.netconf.datasource;
 
-import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkDataSource;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.Device;
 import com.tailf.jnc.DeviceUser;
 import com.tailf.jnc.JNCException;
-import com.tailf.jnc.NetconfSession;
-import sun.nio.ch.Net;
+import com.tailf.jnc.YangException;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class NetconfDataSource implements NetworkDataSource {
     protected final static Object PRESENT = new Object();
     public final static int DEFAULT_MAX_ACTIVE_SIZE = 8;
-    public final static int DEFAULT_MAX_IDLE = 8;
-    public final static int DEFAULT_MIN_IDLE = 0;
     public final static int DEFAULT_MAX_WAIT = -1;
     private String initStackTrace;
     protected ReentrantLock activeConnectionLock = new ReentrantLock();
-
-    private int poolingCount = 0;
-    private int activeCount = 0;
-    private long discardCount = 0;
-    private int keepAliveCheckCount = 0;
-    private int activePeak = 0;
-    private long activePeakTime = 0;
-    private int poolingPeak = 0;
-    private long poolingPeakTime = 0;
+    private long connectCount = 0L;
     protected volatile String username;
     protected volatile String password;
     protected volatile String url;//netconf://172.1.1.1:22
-    protected volatile long maxWait = -1L;
+    protected volatile long maxWait = DEFAULT_MAX_WAIT;
     protected volatile int maxActive = DEFAULT_MAX_ACTIVE_SIZE;
-    protected volatile int minIdle = DEFAULT_MIN_IDLE;
     protected volatile boolean inited;
     public ReentrantLock lock = new ReentrantLock();
     private Device device;
     private DeviceUser deviceUser;
-    protected NetconfSession[] connections;
-    protected final Map<NetconfPooledConnection, Object> activeConnections = new IdentityHashMap<NetconfPooledConnection, Object>();
-    protected ScheduledExecutorService destroyScheduler;
-    protected ScheduledExecutorService createScheduler;
+    protected BlockingQueue<NetconfConnectionHolder> connectionQueue;
 
     public NetconfDataSource(String url, String username, String password) {
         this.url = url;
@@ -88,7 +72,6 @@ public class NetconfDataSource implements NetworkDataSource {
             throw new NetworkException("interrupt", e);
         }
 
-        boolean init = false;
         try {
             if (inited) {
                 return;
@@ -98,14 +81,10 @@ public class NetconfDataSource implements NetworkDataSource {
                 throw new IllegalArgumentException("illegal maxActive " + maxActive);
             }
 
-            if (maxActive < minIdle) {
-                throw new IllegalArgumentException("illegal maxActive " + maxActive);
-            }
-
+            connectionQueue = new ArrayBlockingQueue<>(maxActive);
             device = new Device("", url.substring(10, url.lastIndexOf(":")), Integer.parseInt(url.substring(url.lastIndexOf(":") + 1, url.length())));
             deviceUser = new DeviceUser(username, username, password);
             device.addUser(deviceUser);
-            init = true;
 
         } catch (RuntimeException e) {
             throw e;
@@ -124,7 +103,6 @@ public class NetconfDataSource implements NetworkDataSource {
         NetconfPooledConnection pooledConnection = getConnectionInternal(maxWaitMillis, stream, subscriber);
         activeConnectionLock.lock();
         try {
-            activeConnections.put(pooledConnection, PRESENT);
         } finally {
             activeConnectionLock.unlock();
         }
@@ -133,64 +111,61 @@ public class NetconfDataSource implements NetworkDataSource {
 
 
     private NetconfPooledConnection getConnectionInternal(long maxWait, String stream, NetconfSubscriber subscriber) throws NetworkException {
-        NetconfConnectionHolder holder;
+        NetconfConnectionHolder holder = null;
 
         lock.lock();
         try {
-            if (activeCount < maxActive) {
-                activeCount++;
-                if (activeCount > activePeak) {
-                    activePeak = activeCount;
-                    activePeakTime = System.currentTimeMillis();
+            if (connectionQueue.isEmpty() && connectCount < maxActive) {
+                //创建连接
+                if (!device.isConnect()) {
+                    device.connect(username);
                 }
-//                break;
-            } else {
-//                discard = true;
-            }
-        } finally {
-            lock.unlock();
-        }
-
-        try {
-            if (!device.isConnect()) {
-                device.connect(username);
-            }
-            long connectionId = 1;
-            String sessionName = connectionId + "";
-            NetconfConnection netconfConnection = null;
-            if (stream == null || subscriber == null) {
-                device.newSession(sessionName);
-                netconfConnection = new NetconfConnection(device.getSession(sessionName));
-            } else {
+                long connectionId = connectCount + 1;
+                String sessionName = connectionId + "";
+                NetconfConnection netconfConnection = null;
+                //stream可以为空
                 JNCSubscriber jncSubscriber = new JNCSubscriber(url, stream, subscriber);
                 device.newSession(jncSubscriber, sessionName);
 
                 netconfConnection = new NetconfSubscriberConnection(device.getSession(sessionName), jncSubscriber);
                 netconfConnection.subscription(stream);
+
+                holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
+                connectCount++;
             }
-            holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
-            return new NetconfPooledConnection(holder);
+        } catch (YangException e) {
+            throw new NetconfException(e);
         } catch (IOException e) {
-            throw new NetworkException(e);
+            throw new NetconfException(e);
         } catch (JNCException e) {
+            throw new NetconfException(e);
+        } finally {
+            lock.unlock();
+        }
+
+        //获取连接
+        try {
+            if (holder == null) {
+                if (maxWait > 0) {
+                    holder = connectionQueue.poll(maxWait, TimeUnit.MILLISECONDS);
+                } else {
+                    holder = connectionQueue.take();
+                }
+            }
+        } catch (InterruptedException e) {
             throw new NetworkException(e);
         }
+
+        return new NetconfPooledConnection(holder);
     }
 
-    public Set<NetconfPooledConnection> getActiveConnections() {
-        activeConnectionLock.lock();
+
+    protected void recycle(NetconfPooledConnection pooledConnection) throws NetconfException {
         try {
-            return new HashSet<NetconfPooledConnection>(this.activeConnections.keySet());
-        } finally {
-            activeConnectionLock.unlock();
+            connectionQueue.put(pooledConnection.holder);
+        } catch (InterruptedException e) {
+            throw new NetconfException(e);
         }
     }
 
-    public class CreateConnectionTask implements Runnable {
-
-        @Override
-        public void run() {
-
-        }
-    }
 }

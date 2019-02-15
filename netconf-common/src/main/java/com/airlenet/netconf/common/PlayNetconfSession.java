@@ -30,10 +30,10 @@ public class PlayNetconfSession {
     public void receiveNotification(NetconfSession netconfSession) {
         this.netconfSession = netconfSession;
         if (notification != null && notification.getStream() != null) {
-            new Thread() {
+            Thread thread = new Thread() {
                 @Override
                 public void run() {
-                    setName("Thread" + playNetconfDevic.getMgmt_ip() + ":" + notification.getStream());
+
                     while (true) {
                         if (PlayNetconfSession.this.netconfSession.getCapabilities().hasNotification()) {
                             try {
@@ -86,7 +86,10 @@ public class PlayNetconfSession {
                         }
                     }
                 }
-            }.start();
+            };
+            thread.setName("Thread" + playNetconfDevic.getMgmt_ip() + ":" + notification.getStream());
+            thread.setDaemon(true);
+            thread.start();
         }
     }
 

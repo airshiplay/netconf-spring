@@ -1,33 +1,47 @@
 package com.airlenet.netconf.datasource;
 
 import com.airlenet.network.NetworkConnection;
-import com.airlenet.network.NetworkException;
 import com.airlenet.network.NetworkPooledConnection;
+import com.tailf.jnc.NetconfSession;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class NetconfPooledConnection implements NetworkPooledConnection, NetworkConnection {
+public class NetconfPooledConnection extends NetconfConnection implements NetworkPooledConnection, NetworkConnection {
     private volatile boolean running = false;
     private volatile boolean abandoned = false;
     public ReentrantLock lock = new ReentrantLock();
+    protected final Thread ownerThread;
+    private long connectedTimeMillis;
     protected NetconfConnection conn;
     protected volatile NetconfConnectionHolder holder;
     private volatile boolean disable = false;
     protected volatile boolean closed = false;
 
     public NetconfPooledConnection(NetconfConnectionHolder holder) {
+        super(holder.conn.netconfSession);
         this.conn = holder.conn;
         this.holder = holder;
+        ownerThread = Thread.currentThread();
+        connectedTimeMillis = System.currentTimeMillis();
+    }
+
+    public Thread getOwnerThread() {
+        return ownerThread;
+    }
+
+    public long getConnectedTimeMillis() {
+        return connectedTimeMillis;
     }
 
     @Override
-    public NetworkConnection getConnection() throws NetworkException {
+    public NetconfConnection getConnection() throws NetconfException {
         return conn;
     }
 
     @Override
-    public void close() throws NetworkException {
+    public void close() throws NetconfException {
         if (this.disable) {
             return;
         }
@@ -36,31 +50,35 @@ public class NetconfPooledConnection implements NetworkPooledConnection, Network
         if (holder == null) {
             return;
         }
+        recycle();
     }
 
     @Override
-    public boolean isClosed() throws NetworkException {
-        return false;
+    public boolean isClosed() throws NetconfException {
+        if (holder == null) {
+            return true;
+        }
+
+        return closed || disable;
+    }
+
+    public void recycle() throws NetconfException {
+        if (this.disable) {
+            return;
+        }
+        holder.dataSource.recycle(this);
+        this.holder = null;
+        closed = true;
     }
 
     @Override
-    public void rollback() throws NetworkException {
+    public void rollback() throws NetconfException {
 
     }
 
     @Override
-    public void commit() throws NetworkException {
+    public void commit() throws NetconfException {
 
-    }
-
-    @Override
-    public Object executeQuery(String req) throws NetworkException {
-        return this.conn.executeQuery(req);
-    }
-
-    @Override
-    public Object executeConfig(String req) throws NetworkException {
-        return this.conn.executeConfig(req);
     }
 
     boolean isRunning() {

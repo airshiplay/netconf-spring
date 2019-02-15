@@ -5,15 +5,12 @@ import com.airlenet.network.NetworkDataSource;
 import com.airlenet.network.NetworkException;
 import com.airlenet.network.NetworkMultiDataSource;
 
-import java.util.Arrays;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class NetconfMultiDataSource extends NetconfDataSource implements NetworkMultiDataSource {
 
-    protected final Map<Object, NetconfDataSource> dataSourceObjectMap = new IdentityHashMap<>();
+    protected final Map<Object, NetconfDataSource> dataSourceObjectMap = new HashMap<>();
     public ReentrantLock lock = new ReentrantLock();
 
     public NetconfMultiDataSource() {
@@ -34,18 +31,13 @@ public class NetconfMultiDataSource extends NetconfDataSource implements Network
         throw new IllegalArgumentException("");
     }
 
-//    @Override
+    //    @Override
     public final NetconfPooledConnection getConnectionDirect(long maxWaitMillis) throws NetworkException {
         throw new IllegalArgumentException("");
     }
 
     @Override
-    public final Set<NetconfPooledConnection> getActiveConnections() {
-        throw new IllegalArgumentException("");
-    }
-
-    @Override
-    public NetworkDataSource getDataSource(String url, String username, String password) throws NetworkException {
+    public NetconfDataSource getDataSource(String url, String username, String password) throws NetworkException {
         synchronized (dataSourceObjectMap) {
             NetconfDataSource netconfDataSource = dataSourceObjectMap.get(url);
             if (netconfDataSource == null) {
@@ -57,8 +49,8 @@ public class NetconfMultiDataSource extends NetconfDataSource implements Network
     }
 
     @Override
-    public NetworkConnection getConnection(String url, String username, String password) throws NetworkException {
-        NetworkDataSource dataSource = getDataSource(url, username, password);
+    public NetconfPooledConnection getConnection(String url, String username, String password) throws NetworkException {
+        NetconfDataSource dataSource = getDataSource(url, username, password);
         return dataSource.getConnection();
     }
 }
