@@ -74,7 +74,8 @@ public class PlayNotification extends IOSubscriber {
                     sendOfflineCount++;
                 } catch (JNCException e) {
                     if (e.toString().startsWith("Timeout error:")) {//恢复订阅时，超时
-                        logger.warn("device " + playNetconfDevice.getMgmt_ip() + e.toString(), e);//是否需要关闭session，等待重建
+                        logger.warn("device " + playNetconfDevice.getMgmt_ip() + e.toString(), e);//需要关闭session，等待重建
+                        playNetconfDevice.closeSession(PlayNotification.this.getStream());//删除已关闭的session，等待重建
                     } else if (e.toString().contains("A subscription is already active for this session")) {
                         cancel();//恢复成功，取消定时
                     } else if (e.toString().contains("Message ID mismatch")) {//消息错乱，关闭session

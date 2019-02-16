@@ -207,6 +207,8 @@ public class PlayNetconfDevice {
                 NetconfSession netconfSession = device.getSession(stream);
                 if (netconfSession == null) {
                     device.newSession(notification, stream);
+                    device.setReadTimeout(stream, subscriptionReadTimeout);
+
                 }
             } catch (Exception e) {//device 断链，重新连接
                 try {
@@ -218,7 +220,7 @@ public class PlayNetconfDevice {
                 device.connect(this.remoteUser, null, connectTimeout);
                 logger.debug("resumSubscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
-//                device.setReadTimeout(stream, subscriptionReadTimeout);
+                device.setReadTimeout(stream, subscriptionReadTimeout);
             }
             NetconfSession netconfSession = device.getSession(stream);
             netconfSession.createSubscription(stream);
