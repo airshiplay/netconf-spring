@@ -42,6 +42,9 @@ public class NetconfMultiDataSource extends NetconfDataSource implements Network
             NetconfDataSource netconfDataSource = dataSourceObjectMap.get(url);
             if (netconfDataSource == null) {
                 netconfDataSource = new NetconfDataSource(url, username, password);
+                netconfDataSource.setReadTimeout(this.getReadTimeout());
+                netconfDataSource.setConnectionTimeout(this.getConnectionTimeout());
+                netconfDataSource.setMaxPoolSize(this.getMaxPoolSize());
                 dataSourceObjectMap.put(url, netconfDataSource);
             }
             return netconfDataSource;

@@ -1,11 +1,14 @@
 package com.airlenet.netconf.datasource;
 
 import com.airlenet.network.NetworkException;
+import com.tailf.jnc.Element;
 import com.tailf.jnc.NodeSet;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NetconfDataSourceTest {
-
+    private static final Logger logger = LoggerFactory.getLogger(NetconfDataSourceTest.class);
     NetconfDataSource dataSource = new NetconfDataSource("netconf://172.19.102.122:2022", "admin", "admin");
 
     @Test
@@ -30,5 +33,39 @@ public class NetconfDataSourceTest {
         System.out.println(connection);
         nodeSet = connection.get("sys-info");
         System.out.println(nodeSet.toXMLString());
+    }
+
+    @Test
+    public void testGetSubscriptionConnection() throws NetworkException, InterruptedException {
+        NetconfPooledConnection connection = dataSource.getConnection(new NetconfSubscriber() {
+            @Override
+            public void input(String url, String msg) {
+                logger.debug(url + msg);
+            }
+
+            @Override
+            public void output(String url, String msg) {
+                logger.debug(url + msg);
+            }
+        });
+        connection.subscription(null);
+        new Thread() {
+            @Override
+            public void run() {
+                if (connection.hasNotification()) {
+                    while (true) {
+                        try {
+                            Element receive = connection.receiveNotification();
+                            logger.debug("receive {}", receive.toXMLString());
+                        } catch (NetconfException e) {
+                            logger.error("", e);
+                        }
+
+                    }
+                }
+            }
+        }.start();
+
+//        Thread.sleep(60 * 60 * 1000);
     }
 }

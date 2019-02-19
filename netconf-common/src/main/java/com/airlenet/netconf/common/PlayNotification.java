@@ -21,6 +21,7 @@ public class PlayNotification extends IOSubscriber {
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
     private static final String OnlineNotification = "<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><connect></connect></notification>";
     private static final String OfflineNotification = "<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><disconnect></disconnect></notification>";
+    private static final String SubscribeTimeoutNotification = "<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><timeout></timeout></notification>";
     private String stream;
     private static Timer timer = new Timer();
 
@@ -76,6 +77,11 @@ public class PlayNotification extends IOSubscriber {
                     if (e.toString().startsWith("Timeout error:")) {//恢复订阅时，超时
                         logger.warn("device " + playNetconfDevice.getMgmt_ip() + e.toString(), e);//需要关闭session，等待重建
                         playNetconfDevice.closeSession(PlayNotification.this.getStream());//删除已关闭的session，等待重建
+                        //订阅超时
+                        if (sendOfflineCount == 0) {
+                            input(String.format(SubscribeTimeoutNotification, simpleDateFormat.format(new Date())));
+                        }
+                        sendOfflineCount++;
                     } else if (e.toString().contains("A subscription is already active for this session")) {
                         cancel();//恢复成功，取消定时
                     } else if (e.toString().contains("Message ID mismatch")) {//消息错乱，关闭session

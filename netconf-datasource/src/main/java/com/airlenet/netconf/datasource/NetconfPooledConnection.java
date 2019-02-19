@@ -20,7 +20,7 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
     protected volatile boolean closed = false;
 
     public NetconfPooledConnection(NetconfConnectionHolder holder) {
-        super(holder.conn.netconfSession);
+        super(holder.conn.sessionName,holder.conn.sshSession,holder.conn.netconfSession, holder.conn.jncSubscriber);
         this.conn = holder.conn;
         this.holder = holder;
         ownerThread = Thread.currentThread();

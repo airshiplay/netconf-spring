@@ -9,13 +9,19 @@ import java.io.IOException;
 public class NetconfConnection implements NetworkConnection {
 
     protected final NetconfSession netconfSession;
-    protected volatile boolean abandoned = false;
     private final long sessionId;
+    protected final String sessionName;
+    protected final SSHSession sshSession;
+    protected volatile boolean abandoned = false;
     protected boolean transaction;
+    protected JNCSubscriber jncSubscriber;
 
-    public NetconfConnection(NetconfSession netconfSession) {
+    public NetconfConnection(String sessionName, SSHSession sshSession, NetconfSession netconfSession, JNCSubscriber jncSubscriber) {
         this.netconfSession = netconfSession;
         this.sessionId = netconfSession.sessionId;
+        this.jncSubscriber = jncSubscriber;
+        this.sessionName = sessionName;
+        this.sshSession = sshSession;
     }
 
     @Override
@@ -167,11 +173,13 @@ public class NetconfConnection implements NetworkConnection {
 
     }
 
+    public void setReadTimeout(long readTimeout) {
+        this.sshSession.setReadTimeout(Math.toIntExact(readTimeout));
+    }
+
     public void subscription(String stream) throws NetconfException {
         try {
             netconfSession.createSubscription(stream);
-
-
         } catch (JNCException e) {
             throw new NetconfException(e);
         } catch (SessionClosedException e) {
@@ -182,29 +190,26 @@ public class NetconfConnection implements NetworkConnection {
         }
     }
 
-    private class Notification implements Runnable {
-        private NetconfSession netconfSession;
+    public Capabilities getCapabilities() {
+        return netconfSession.getCapabilities();
+    }
 
+    public boolean hasNotification() {
+        return netconfSession.getCapabilities().hasNotification();
+    }
 
-        public Notification() {
-
-        }
-
-        @Override
-        public void run() {
-            while (true) {
-                if (netconfSession.getCapabilities().hasNotification()) {
-
-                    try {
-                        netconfSession.receiveNotification();
-                    } catch (SessionClosedException e) {
-
-                    } catch (Exception e) {
-
-                    }
-                }
-            }
-
+    public Element receiveNotification() throws NetconfException {
+        try {
+            return this.netconfSession.receiveNotification();
+        } catch (SessionClosedException e) {
+            throw new NetconfException(e);
+        } catch (IOException e) {
+            throw new NetconfException(e);
+        } catch (JNCException e) {
+            throw new NetconfException(e);
+        } catch (Exception e) {
+            throw new NetconfException(e);
         }
     }
+
 }

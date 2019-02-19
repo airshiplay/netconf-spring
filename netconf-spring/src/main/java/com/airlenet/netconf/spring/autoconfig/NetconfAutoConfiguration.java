@@ -20,7 +20,11 @@ public class NetconfAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public NetconfMultiDataSource netconfMultiDataSource() {
-        return new NetconfMultiDataSource();
+        NetconfMultiDataSource multiDataSource = new NetconfMultiDataSource();
+        multiDataSource.setReadTimeout(netconfProperties.getReadTimeout());
+        multiDataSource.setConnectionTimeout(netconfProperties.getConnectionTimeout());
+        multiDataSource.setMaxPoolSize(netconfProperties.getMaxPoolSize());
+        return multiDataSource;
     }
 
     @Bean
