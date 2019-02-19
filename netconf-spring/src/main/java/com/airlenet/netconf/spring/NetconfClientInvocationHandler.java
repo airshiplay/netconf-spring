@@ -1,6 +1,6 @@
 package com.airlenet.netconf.spring;
 
-import com.airlenet.netconf.datasource.NetconfMultiDataSource;
+import com.airlenet.netconf.datasource.MultiNetconfDataSource;
 import com.airlenet.netconf.datasource.NetconfPooledConnection;
 
 import java.lang.reflect.InvocationHandler;
@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class NetconfClientInvocationHandler implements InvocationHandler {
-    final NetconfMultiDataSource netconfMultiDataSource;
+    final MultiNetconfDataSource multiNetconfDataSource;
 
-    public NetconfClientInvocationHandler(NetconfMultiDataSource netconfMultiDataSource) {
-        this.netconfMultiDataSource = netconfMultiDataSource;
+    public NetconfClientInvocationHandler(MultiNetconfDataSource multiNetconfDataSource) {
+        this.multiNetconfDataSource = multiNetconfDataSource;
     }
 
     @Override
@@ -30,7 +30,7 @@ public class NetconfClientInvocationHandler implements InvocationHandler {
 
             Object[] connectionArgs = new Object[args.length - 3];
             System.arraycopy(args, 3, connectionArgs, 0, args.length - 3);
-            NetconfPooledConnection connection = netconfMultiDataSource.getDataSource(url, username, password).getConnection();
+            NetconfPooledConnection connection = multiNetconfDataSource.getDataSource(url, username, password).getConnection();
             if (method.getReturnType() == NetconfPooledConnection.class) {
                 return connection;
             }
@@ -44,7 +44,7 @@ public class NetconfClientInvocationHandler implements InvocationHandler {
             Object[] connectionArgs = new Object[args.length - 1];
             System.arraycopy(args, 1, connectionArgs, 0, args.length - 1);
 
-            NetconfPooledConnection connection = netconfMultiDataSource.getDataSource(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword()).getConnection();
+            NetconfPooledConnection connection = multiNetconfDataSource.getDataSource(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword()).getConnection();
 
             if (method.getReturnType() == NetconfPooledConnection.class) {
                 return connection;

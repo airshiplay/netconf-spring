@@ -15,6 +15,7 @@ public class JNCSubscriber extends IOSubscriber {
 
     private final NetconfSubscriber netconfSubscriber;
     private final String url;
+    private String sessionName;
 
     public JNCSubscriber(boolean rawmode, String url,
                          String stream, NetconfSubscriber netconfSubscriber) {
@@ -29,16 +30,23 @@ public class JNCSubscriber extends IOSubscriber {
         this.url = url;
     }
 
+    public JNCSubscriber(String url, String sessionName, NetconfSubscriber subscriber) {
+        super(false);
+        this.netconfSubscriber = subscriber;
+        this.url = url;
+        this.sessionName = sessionName;
+    }
+
     @Override
     public void input(String msg) {
-        logger.debug("url={},msg={}", this.url, msg);
+        logger.debug("url={},sessionName={},msg={}", this.url, sessionName, msg);
         if (netconfSubscriber != null)
             netconfSubscriber.input(this.url, msg);
     }
 
     @Override
     public void output(String msg) {
-        logger.debug("url={},msg={}", this.url, msg);
+        logger.debug("url={},sessionName={},msg={}", this.url, sessionName, msg);
         if (netconfSubscriber != null)
             netconfSubscriber.output(this.url, msg);
     }

@@ -4,11 +4,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "spring.netconf")
 public class NetconfProperties {
-
+    private String[] aopPatterns;
     private static final int ReadTimeOut = 0;
     private int readTimeout = ReadTimeOut;
     private int connectionTimeout = 0;
     private int maxPoolSize = 8;
+    private StatViewServlet statViewServlet = new StatViewServlet();
+
 
     public int getConnectionTimeout() {
         return connectionTimeout;
@@ -34,4 +36,77 @@ public class NetconfProperties {
         this.readTimeout = readTimeout;
     }
 
+    public String[] getAopPatterns() {
+        return this.aopPatterns;
+    }
+
+    public void setAopPatterns(String[] aopPatterns) {
+        this.aopPatterns = aopPatterns;
+    }
+
+
+    public StatViewServlet getStatViewServlet() {
+        return statViewServlet;
+    }
+
+    public void setStatViewServlet(StatViewServlet statViewServlet) {
+        this.statViewServlet = statViewServlet;
+    }
+
+    public static class StatViewServlet {
+        private boolean enabled = true;
+        private String urlPattern;
+        private String allow;
+        private String deny;
+        private String loginUsername;
+        private String loginPassword;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getUrlPattern() {
+            return urlPattern;
+        }
+
+        public void setUrlPattern(String urlPattern) {
+            this.urlPattern = urlPattern;
+        }
+
+        public String getAllow() {
+            return allow;
+        }
+
+        public void setAllow(String allow) {
+            this.allow = allow;
+        }
+
+        public String getDeny() {
+            return deny;
+        }
+
+        public void setDeny(String deny) {
+            this.deny = deny;
+        }
+
+        public String getLoginUsername() {
+            return loginUsername;
+        }
+
+        public void setLoginUsername(String loginUsername) {
+            this.loginUsername = loginUsername;
+        }
+
+        public String getLoginPassword() {
+            return loginPassword;
+        }
+
+        public void setLoginPassword(String loginPassword) {
+            this.loginPassword = loginPassword;
+        }
+    }
 }

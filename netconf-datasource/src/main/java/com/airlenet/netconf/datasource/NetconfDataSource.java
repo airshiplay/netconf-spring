@@ -3,6 +3,7 @@ package com.airlenet.netconf.datasource;
 import com.airlenet.network.NetworkDataSource;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
+import com.airlenet.netconf.datasource.util.Utils;
 
 import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -122,7 +123,7 @@ public class NetconfDataSource implements NetworkDataSource {
                 String sessionName = "datasource-" + connectionId;
                 NetconfConnection netconfConnection = null;
 
-                JNCSubscriber jncSubscriber = new JNCSubscriber(url, subscriber);
+                JNCSubscriber jncSubscriber = new JNCSubscriber(url, sessionName, subscriber);
                 try {
                     device.newSession(jncSubscriber, sessionName);
                 } catch (Exception e) {//断链，重新连接 TODO 需将所有连接重置，并重新建联
@@ -132,7 +133,7 @@ public class NetconfDataSource implements NetworkDataSource {
                 }
                 SSHSession sshSession = device.getSSHSession(sessionName);
                 NetconfSession netconfSession = device.getSession(sessionName);
-                netconfConnection = new NetconfConnection(sessionName,sshSession,netconfSession, jncSubscriber);
+                netconfConnection = new NetconfConnection(sessionName, sshSession, netconfSession, jncSubscriber);
 
                 holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
                 connectCount++;

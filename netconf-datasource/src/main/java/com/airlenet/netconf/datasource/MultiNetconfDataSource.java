@@ -1,23 +1,21 @@
 package com.airlenet.netconf.datasource;
 
-import com.airlenet.network.NetworkConnection;
-import com.airlenet.network.NetworkDataSource;
 import com.airlenet.network.NetworkException;
-import com.airlenet.network.NetworkMultiDataSource;
+import com.airlenet.network.MultiNetworkDataSource;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class NetconfMultiDataSource extends NetconfDataSource implements NetworkMultiDataSource {
+public class MultiNetconfDataSource extends NetconfDataSource implements MultiNetworkDataSource {
 
     protected final Map<Object, NetconfDataSource> dataSourceObjectMap = new HashMap<>();
     public ReentrantLock lock = new ReentrantLock();
 
-    public NetconfMultiDataSource() {
+    public MultiNetconfDataSource() {
         this("", "", "");
     }
 
-    private NetconfMultiDataSource(String url, String username, String password) {
+    private MultiNetconfDataSource(String url, String username, String password) {
         super(url, username, password);
     }
 

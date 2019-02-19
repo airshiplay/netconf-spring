@@ -1,6 +1,6 @@
 package com.airlenet.network;
 
-public interface NetworkMultiDataSource extends NetworkDataSource {
+public interface MultiNetworkDataSource extends NetworkDataSource {
 
     public NetworkDataSource getDataSource(String url, String username, String password) throws NetworkException;
 
