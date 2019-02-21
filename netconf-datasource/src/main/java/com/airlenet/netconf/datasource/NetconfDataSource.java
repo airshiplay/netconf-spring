@@ -45,6 +45,10 @@ public class NetconfDataSource implements NetworkDataSource {
         return this.inited;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
     @Override
     public NetconfPooledConnection getConnection() throws NetworkException {
         return this.getConnection(this.connectionTimeout, null);

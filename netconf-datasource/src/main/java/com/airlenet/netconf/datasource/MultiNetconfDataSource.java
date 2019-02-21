@@ -1,5 +1,6 @@
 package com.airlenet.netconf.datasource;
 
+import com.airlenet.network.NetworkDataSource;
 import com.airlenet.network.NetworkException;
 import com.airlenet.network.MultiNetworkDataSource;
 
@@ -53,5 +54,46 @@ public class MultiNetconfDataSource extends NetconfDataSource implements MultiNe
     public NetconfPooledConnection getConnection(String url, String username, String password) throws NetworkException {
         NetconfDataSource dataSource = getDataSource(url, username, password);
         return dataSource.getConnection();
+    }
+
+    @Override
+    public void removeDataSource(String url) throws NetworkException {
+        synchronized (dataSourceObjectMap) {
+            NetconfDataSource netconfDataSource = dataSourceObjectMap.get(url);
+            if (netconfDataSource != null) {
+                netconfDataSource.close();
+            }
+        }
+    }
+
+    @Override
+    public void addDataSource(String url, String username, String password) throws NetworkException {
+        getDataSource(url, username, password);
+    }
+
+    @Override
+    public void removeDataSource(NetworkDataSource dataSource) throws NetworkException {
+        if (dataSource instanceof NetconfDataSource) {
+            NetconfDataSource originalNetconfDataSource = (NetconfDataSource) dataSource;
+            synchronized (dataSourceObjectMap) {
+                NetconfDataSource netconfDataSource = dataSourceObjectMap.get(originalNetconfDataSource.getUrl());
+                if (netconfDataSource != null) {
+                    netconfDataSource.close();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void addDataSource(NetworkDataSource dataSource) throws NetworkException {
+        if (dataSource instanceof NetconfDataSource) {
+            NetconfDataSource originalNetconfDataSource = (NetconfDataSource) dataSource;
+            synchronized (dataSourceObjectMap) {
+                NetconfDataSource netconfDataSource = dataSourceObjectMap.get(originalNetconfDataSource.getUrl());
+                if (netconfDataSource == null) {
+                    dataSourceObjectMap.put(originalNetconfDataSource.getUrl(), originalNetconfDataSource);
+                }
+            }
+        }
     }
 }
