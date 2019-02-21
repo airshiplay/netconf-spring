@@ -9,8 +9,7 @@ import java.sql.SQLException;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class NetconfPooledConnection extends NetconfConnection implements NetworkPooledConnection, NetworkConnection {
-    private volatile boolean running = false;
-    private volatile boolean abandoned = false;
+
     public ReentrantLock lock = new ReentrantLock();
     protected final Thread ownerThread;
     private long connectedTimeMillis;
@@ -20,7 +19,7 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
     protected volatile boolean closed = false;
 
     public NetconfPooledConnection(NetconfConnectionHolder holder) {
-        super(holder.conn.sessionName,holder.conn.sshSession,holder.conn.netconfSession, holder.conn.jncSubscriber);
+        super(holder.conn.sessionName, holder.conn.sshSession, holder.conn.netconfSession, holder.conn.jncSubscriber);
         this.conn = holder.conn;
         this.holder = holder;
         ownerThread = Thread.currentThread();
@@ -58,7 +57,6 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         if (holder == null) {
             return true;
         }
-
         return closed || disable;
     }
 
@@ -84,22 +82,6 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
     @Override
     public void commit() throws NetconfException {
 
-    }
-
-    boolean isRunning() {
-        return running;
-    }
-
-    public void abandond() {
-        this.abandoned = true;
-    }
-
-    final void beforeExecute() {
-        running = true;
-    }
-
-    final void afterExecute() {
-        running = false;
     }
 
     public String toString() {

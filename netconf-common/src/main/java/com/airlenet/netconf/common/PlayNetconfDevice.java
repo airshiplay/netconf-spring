@@ -25,6 +25,8 @@ public class PlayNetconfDevice {
     private Device device;
     //  the timeout value to be used in milliseconds.
     private int connectTimeout = 0;
+
+    private int kexTimeout = 0;
     //
     private int defaultReadTimeout = 0;
     private int subscriptionReadTimeout = 0;
@@ -81,6 +83,13 @@ public class PlayNetconfDevice {
     }
 
     /**
+     * @param kexTimeout milliseconds.
+     */
+    public void setKexTimeout(int kexTimeout) {
+        this.kexTimeout = kexTimeout;
+    }
+
+    /**
      * @param defaultReadTimeout milliseconds.
      */
     public void setDefaultReadTimeout(int defaultReadTimeout) {
@@ -99,7 +108,7 @@ public class PlayNetconfDevice {
             device = new Device(this.mgmt_ip, duser, this.mgmt_ip, this.mgmt_port);
             device.setDefaultReadTimeout(defaultReadTimeout);
             logger.debug("connect " + mgmt_ip);
-            device.connect(this.remoteUser, null, connectTimeout);
+            device.connect(this.remoteUser, null, connectTimeout, kexTimeout);
             notification = new PlayNotification(this);
             logger.debug("new Session defaultPlaySession " + mgmt_ip);
             device.newSession(notification, "defaultPlaySession");
@@ -119,7 +128,7 @@ public class PlayNetconfDevice {
                     } catch (Exception e1) {
                     }
                     logger.debug("connect device " + mgmt_ip);
-                    device.connect(this.remoteUser, null, connectTimeout);
+                    device.connect(this.remoteUser, null, connectTimeout, kexTimeout);
                     notification = new PlayNotification(this);
                     logger.debug("new Session defaultPlaySession device " + mgmt_ip);
                     device.newSession(notification, "defaultPlaySession");
@@ -165,7 +174,7 @@ public class PlayNetconfDevice {
                     device = new Device(this.mgmt_ip, duser, this.mgmt_ip, this.mgmt_port);
                     device.setDefaultReadTimeout(defaultReadTimeout);
                     logger.debug("subscription connect device " + mgmt_ip);
-                    device.connect(this.remoteUser, null, connectTimeout);
+                    device.connect(this.remoteUser, null, connectTimeout, kexTimeout);
                 }
                 logger.debug("subscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
@@ -177,7 +186,7 @@ public class PlayNetconfDevice {
                 } catch (Exception e1) {
                 }
                 logger.debug("subscription connect device " + mgmt_ip);
-                device.connect(this.remoteUser, null, connectTimeout);
+                device.connect(this.remoteUser, null, connectTimeout, kexTimeout);
                 logger.debug("subscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
                 device.setReadTimeout(stream, subscriptionReadTimeout);
@@ -217,7 +226,7 @@ public class PlayNetconfDevice {
                 } catch (Exception e1) {
                 }
                 logger.debug("resumSubscription connect device " + mgmt_ip);
-                device.connect(this.remoteUser, null, connectTimeout);
+                device.connect(this.remoteUser, null, connectTimeout, kexTimeout);
                 logger.debug("resumSubscription new session " + stream + " device " + mgmt_ip);
                 device.newSession(notification, stream);
                 device.setReadTimeout(stream, subscriptionReadTimeout);

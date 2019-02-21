@@ -206,6 +206,7 @@ public class NetconfConnection implements NetworkConnection {
         try {
             return this.netconfSession.receiveNotification();
         } catch (SessionClosedException e) {
+            abandoned = true;
             throw new NetconfException(e);
         } catch (IOException e) {
             throw new NetconfException(e);

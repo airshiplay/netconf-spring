@@ -38,5 +38,17 @@ public class PlayNetconfDeviceTest {
 
         nodeSet = netconfDevice.getDefaultNetconfSession().get("sys-info");
         System.out.println(nodeSet);
+
+        netconfDevice.createSubscription("alarm", new PlayNetconfListener() {
+            @Override
+            public void receive(Long id, String stream, String ip, String msg) {
+
+            }
+
+            @Override
+            public void send(Long id, String stream, String ip, String msg) {
+
+            }
+        });
     }
 }

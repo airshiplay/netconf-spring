@@ -5,9 +5,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "spring.netconf")
 public class NetconfProperties {
     private String[] aopPatterns;
-    private static final int ReadTimeOut = 0;
-    private int readTimeout = ReadTimeOut;
-    private int connectionTimeout = 0;
+    private static final int DefaultTimeOut = 0;
+    private int readTimeout = DefaultTimeOut;
+    private int connectionTimeout = DefaultTimeOut;
+    private int kexTimeout = DefaultTimeOut;
     private int maxPoolSize = 8;
     private StatViewServlet statViewServlet = new StatViewServlet();
 
@@ -34,6 +35,14 @@ public class NetconfProperties {
 
     public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public int getKexTimeout() {
+        return kexTimeout;
+    }
+
+    public void setKexTimeout(int kexTimeout) {
+        this.kexTimeout = kexTimeout;
     }
 
     public String[] getAopPatterns() {

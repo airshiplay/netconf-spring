@@ -24,6 +24,7 @@ public class NetconfDataSource implements NetworkDataSource {
     protected volatile String url;//netconf://172.1.1.1:22
     protected volatile long connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile long readTimeout = DEFAULT_CONNECTION_TIMEOUT;
+    protected volatile long kexTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
     protected volatile boolean inited;
 
@@ -163,7 +164,7 @@ public class NetconfDataSource implements NetworkDataSource {
             if (connectionQueue.isEmpty() && connectCount < maxPoolSize) {
                 //创建连接
                 if (!device.isConnect()) {
-                    device.connect(username, (int) connectionTimeout);
+                    device.connect(username, null, Math.toIntExact(connectionTimeout), Math.toIntExact(kexTimeout));
                 }
                 long connectionId = connectCount + 1;
                 String sessionName = "datasource-" + connectionId + ":" + Math.random();
@@ -253,6 +254,14 @@ public class NetconfDataSource implements NetworkDataSource {
 
     public void setReadTimeout(long readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public long getKexTimeout() {
+        return kexTimeout;
+    }
+
+    public void setKexTimeout(long kexTimeout) {
+        this.kexTimeout = kexTimeout;
     }
 
     public int getMaxPoolSize() {

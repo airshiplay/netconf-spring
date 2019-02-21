@@ -30,6 +30,7 @@ public class NetconfAutoConfiguration {
         MultiNetconfDataSource multiDataSource = new MultiNetconfDataSource();
         multiDataSource.setReadTimeout(netconfProperties.getReadTimeout());
         multiDataSource.setConnectionTimeout(netconfProperties.getConnectionTimeout());
+        multiDataSource.setKexTimeout(netconfProperties.getKexTimeout());
         multiDataSource.setMaxPoolSize(netconfProperties.getMaxPoolSize());
         return multiDataSource;
     }
