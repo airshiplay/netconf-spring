@@ -6,6 +6,8 @@ import com.tailf.jnc.*;
 import com.airlenet.netconf.datasource.util.Utils;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +26,9 @@ public class NetconfDataSource implements NetworkDataSource {
     protected volatile long readTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
     protected volatile boolean inited;
+
+    private volatile boolean closing = false;
+    private volatile boolean closed = false;
     public ReentrantLock lock = new ReentrantLock();
     private Device device;
     private DeviceUser deviceUser;
@@ -51,6 +56,47 @@ public class NetconfDataSource implements NetworkDataSource {
     @Override
     public NetconfPooledConnection getConnection(String username, String password) throws NetworkException {
         return getConnection();
+    }
+
+    @Override
+    public void close() {
+
+        lock.lock();
+        try {
+            if (this.closed) {
+                return;
+            }
+
+            if (!this.inited) {
+                return;
+            }
+
+            this.closing = true;
+            connectionQueue.clear();
+            device.close();
+
+            this.closed = true;
+        } finally {
+            lock.unlock();
+        }
+
+
+    }
+
+    public boolean isClosed() {
+        return this.closed;
+    }
+
+    @Override
+    public void restart() {
+        lock.lock();
+        try {
+            this.close();
+            this.inited = false;
+            this.closed = false;
+        } finally {
+            lock.unlock();
+        }
     }
 
     private NetconfPooledConnection getConnection(long connectionTimeout, NetconfSubscriber subscriber) throws NetworkException {
@@ -120,7 +166,7 @@ public class NetconfDataSource implements NetworkDataSource {
                     device.connect(username, (int) connectionTimeout);
                 }
                 long connectionId = connectCount + 1;
-                String sessionName = "datasource-" + connectionId;
+                String sessionName = "datasource-" + connectionId + ":" + Math.random();
                 NetconfConnection netconfConnection = null;
 
                 JNCSubscriber jncSubscriber = new JNCSubscriber(url, sessionName, subscriber);
@@ -175,6 +221,7 @@ public class NetconfDataSource implements NetworkDataSource {
     public void discardConnection(NetconfPooledConnection realConnection) {
         lock.lock();
         connectCount--;
+        device.closeSession(realConnection.sessionName);
         lock.unlock();
     }
 

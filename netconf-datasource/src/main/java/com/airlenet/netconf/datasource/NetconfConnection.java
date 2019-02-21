@@ -35,6 +35,10 @@ public class NetconfConnection implements NetworkConnection {
         }
     }
 
+    public String getSessionName() {
+        return sessionName;
+    }
+
     public boolean isAbandonded() {
         return this.abandoned;
     }
