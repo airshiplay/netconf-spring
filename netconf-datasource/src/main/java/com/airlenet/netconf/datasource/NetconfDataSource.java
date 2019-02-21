@@ -4,6 +4,8 @@ import com.airlenet.network.NetworkDataSource;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
 import com.airlenet.netconf.datasource.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -14,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class NetconfDataSource implements NetworkDataSource {
+    private static final Logger logger = LoggerFactory.getLogger(NetconfDataSource.class);
     public final static int DEFAULT_MAX_POOL_SIZE = 8;
     public final static int DEFAULT_CONNECTION_TIMEOUT = 0;
     private String initStackTrace;
@@ -151,71 +154,77 @@ public class NetconfDataSource implements NetworkDataSource {
 
     public NetconfPooledConnection getConnectionDirect(long connectionTimeoutMillis, NetconfSubscriber subscriber) throws NetworkException {
         NetconfPooledConnection pooledConnection = getConnectionInternal(connectionTimeoutMillis, subscriber);
-        activeConnectionLock.lock();
-        try {
-        } finally {
-            activeConnectionLock.unlock();
-        }
         return pooledConnection;
     }
 
 
     private NetconfPooledConnection getConnectionInternal(long connectionTimeout, NetconfSubscriber subscriber) throws NetworkException {
         NetconfConnectionHolder holder = null;
-
-        lock.lock();
+        logger.debug("Fetching Netconf Connection from DataSource");
         try {
-            if (connectionQueue.isEmpty() && connectCount < maxPoolSize) {
-                //创建连接
-                if (!device.isConnect()) {
-                    device.connect(username, null, Math.toIntExact(connectionTimeout), Math.toIntExact(kexTimeout));
-                }
-                long connectionId = connectCount + 1;
-                String sessionName = "datasource-" + connectionId + ":" + Math.random();
-                NetconfConnection netconfConnection = null;
-
-                JNCSubscriber jncSubscriber = new JNCSubscriber(url, sessionName, subscriber);
+            boolean tryLock = lock.tryLock(connectionTimeout, TimeUnit.MILLISECONDS);
+            if (tryLock) {
                 try {
-                    device.newSession(jncSubscriber, sessionName);
-                } catch (Exception e) {//断链，重新连接 TODO 需将所有连接重置，并重新建联
+                    if (connectionQueue.isEmpty() && connectCount < maxPoolSize) {
+                        //创建连接
+                        if (!device.isConnect()) {
+                            logger.debug(this.url + " Connect Netconf Device");
+                            device.connect(username, null, Math.toIntExact(connectionTimeout), Math.toIntExact(kexTimeout));
+                        }
+                        long connectionId = connectCount + 1;
+                        String sessionName = "datasource-" + connectionId + ":" + Math.random();
+                        NetconfConnection netconfConnection = null;
 
-                    device.connect(username, (int) connectionTimeout);
-                    device.newSession(jncSubscriber, sessionName);
+                        JNCSubscriber jncSubscriber = new JNCSubscriber(url, sessionName, subscriber);
+                        try {
+                            device.newSession(jncSubscriber, sessionName);
+                        } catch (Exception e) {//断链，重新连接 TODO 需将所有连接重置，并重新建联
+                            logger.debug(this.url + " Again Connect Netconf Device");
+                            device.connect(username, (int) connectionTimeout);
+                            device.newSession(jncSubscriber, sessionName);
+                        }
+                        SSHSession sshSession = device.getSSHSession(sessionName);
+                        NetconfSession netconfSession = device.getSession(sessionName);
+                        netconfConnection = new NetconfConnection(sessionName, sshSession, netconfSession, jncSubscriber);
+
+                        holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
+                        connectCount++;
+                    }
+                } catch (YangException e) {
+                    throw new NetconfException(e);
+                } catch (IOException e) {
+                    throw new NetconfException(e);
+                } catch (JNCException e) {
+                    throw new NetconfException(e);
+                } finally {
+                    lock.unlock();
                 }
-                SSHSession sshSession = device.getSSHSession(sessionName);
-                NetconfSession netconfSession = device.getSession(sessionName);
-                netconfConnection = new NetconfConnection(sessionName, sshSession, netconfSession, jncSubscriber);
-
-                holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
-                connectCount++;
-            }
-        } catch (YangException e) {
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
-        } catch (JNCException e) {
-            throw new NetconfException(e);
-        } finally {
-            lock.unlock();
-        }
-
-        //获取连接
-        try {
-            if (holder == null) {
-                if (connectionTimeout > 0) {
-                    holder = connectionQueue.poll(connectionTimeout, TimeUnit.MILLISECONDS);
-                } else {
-                    holder = connectionQueue.take();
+                //获取连接
+                try {
+                    if (holder == null) {
+                        if (connectionTimeout > 0) {
+                            holder = connectionQueue.poll(connectionTimeout, TimeUnit.MILLISECONDS);
+                        } else {
+                            holder = connectionQueue.take();
+                        }
+                    }
+                    if (holder == null) {
+                        throw new IllegalStateException("DataSource returned null from getConnection(): " + this);
+                    }
+                } catch (InterruptedException e) {
+                    throw new NetworkException(e);
                 }
-            }
-            if (holder == null) {
+                logger.debug("Fetched Netconf Connection from DataSource");
+                return new NetconfPooledConnection(holder);
+            } else {
                 throw new NetconfTimeoutException(this.url + " getConnection Timeout:" + connectionTimeout);
             }
+
         } catch (InterruptedException e) {
-            throw new NetworkException(e);
+            throw new NetconfException(e);
         }
 
-        return new NetconfPooledConnection(holder);
+
     }
 
     /**
