@@ -221,5 +221,24 @@ public class Utils {
         }
         return startTime;
     }
+    private final static boolean[] whitespaceFlags = new boolean[256];
+    static {
+        for (int i = 0; i <= 32; ++i) {
+            whitespaceFlags[i] = true;
+        }
 
+        whitespaceFlags[0x1A] = false;
+        for (int i = 0x7F; i <= 0xA0; ++i) {
+            whitespaceFlags[i] = true;
+        }
+
+        whitespaceFlags[160] = true; // 特别处理
+    }
+    /**
+     * @return false if {@link LayoutCharacters#EOI}
+     */
+    public static boolean isWhitespace(char c) {
+        return (c <= whitespaceFlags.length && whitespaceFlags[c]) //
+                || c == '　'; // Chinese space
+    }
 }

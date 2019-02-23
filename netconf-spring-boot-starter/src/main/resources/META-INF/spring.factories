@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.airlenet.netconf.spring.autoconfigure.NetconfDataSourceAutoConfigure

@@ -27,12 +27,12 @@
     <modules>
         <module>netconf-common</module>
         <module>yang-model</module>
-        <module>netconf-service</module>
-        <module>netconf-rest</module>
+        <!--<module>netconf-service</module>-->
+        <!--<module>netconf-rest</module>-->
         <module>netconf-datasource</module>
         <module>network-datasource</module>
         <module>snmp-datasource</module>
-        <module>netconf-spring</module>
+        <module>netconf-spring-boot-starter</module>
     </modules>
     <dependencyManagement>
         <dependencies>

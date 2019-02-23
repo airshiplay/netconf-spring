@@ -1,7 +1,7 @@
 package com.airlenet.netconf.datasource.util;
 
 public enum NetconfExceptionType {
-    NONE, NetconfException, SocketTimeoutException,
-    SessionClosedException, IOException,
-    ConnectException, JNCException,
+    NONE, NetconfException, SocketTimeout,
+    SessionClosed, IOException,
+    ConnectRefused, JNCException, JNC_Timeout, JNC_AUTH_FAILED
 }

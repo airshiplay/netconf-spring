@@ -11,7 +11,7 @@ import java.io.IOException;
  */
 public class PlayNetconfDeviceTest {
     public static void main(String args[]) throws IOException, JNCException {
-        PlayNetconfDevice netconfDevice = new PlayNetconfDevice(1L, "admin", "admin", "172.19.105.115", 2022);
+        PlayNetconfDevice netconfDevice = new PlayNetconfDevice(1L, "admin", "cErtusnEt@2018", "172.19.105.115", 2022);
         long sessionId = netconfDevice.getDefaultNetconfSession().getSessionId();
         System.out.println(sessionId);
 //        sessionId = netconfDevice.getDefaultNetconfSession().getSessionId();

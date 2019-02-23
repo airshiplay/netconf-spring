@@ -1,5 +1,6 @@
 package com.airlenet.netconf.datasource;
 
+import com.airlenet.netconf.datasource.stat.NetconfDataSourceStatManager;
 import com.airlenet.network.NetworkDataSource;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
@@ -7,24 +8,32 @@ import com.airlenet.netconf.datasource.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.MBeanRegistration;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class NetconfDataSource implements NetworkDataSource {
+public class NetconfDataSource extends NetconfAbstractDataSource implements MBeanRegistration, NetconfDataSourceMBean {
     private static final Logger logger = LoggerFactory.getLogger(NetconfDataSource.class);
     public final static int DEFAULT_MAX_POOL_SIZE = 8;
     public final static int DEFAULT_CONNECTION_TIMEOUT = 0;
     private String initStackTrace;
     protected ReentrantLock activeConnectionLock = new ReentrantLock();
+
     private long connectCount = 0L;
-    protected volatile String username;
-    protected volatile String password;
-    protected volatile String url;//netconf://172.1.1.1:22
+
     protected volatile long connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile long readTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile long kexTimeout = DEFAULT_CONNECTION_TIMEOUT;
@@ -36,7 +45,13 @@ public class NetconfDataSource implements NetworkDataSource {
     public ReentrantLock lock = new ReentrantLock();
     private Device device;
     private DeviceUser deviceUser;
+
     protected BlockingQueue<NetconfConnectionHolder> connectionQueue;
+
+    private boolean mbeanRegistered = false;
+
+    private ObjectName objectName;
+    private final static AtomicInteger dataSourceIdSeed = new AtomicInteger(0);
 
     public NetconfDataSource(String url, String username, String password) {
         this.url = url;
@@ -82,7 +97,7 @@ public class NetconfDataSource implements NetworkDataSource {
             this.closing = true;
             connectionQueue.clear();
             device.close();
-
+            unregisterMbean();
             this.closed = true;
         } finally {
             lock.unlock();
@@ -133,12 +148,15 @@ public class NetconfDataSource implements NetworkDataSource {
                 throw new IllegalArgumentException("illegal maxPoolSize " + maxPoolSize);
             }
 
+            this.id = dataSourceIdSeed.incrementAndGet();
             connectionQueue = new ArrayBlockingQueue<>(maxPoolSize);
             device = new Device("", url.substring(10, url.lastIndexOf(":")), Integer.parseInt(url.substring(url.lastIndexOf(":") + 1, url.length())));
             device.setDefaultReadTimeout((int) readTimeout);
             deviceUser = new DeviceUser(username, username, password);
             device.addUser(deviceUser);
 
+            initedTime = new Date();
+            registerMbean();
         } catch (RuntimeException e) {
             throw e;
         } catch (Error e) {
@@ -283,5 +301,91 @@ public class NetconfDataSource implements NetworkDataSource {
 
     public void setMaxPoolSize(int maxPoolSize) {
         this.maxPoolSize = maxPoolSize;
+    }
+
+    public ObjectName getObjectName() {
+        return objectName;
+    }
+
+    public void setObjectName(ObjectName objectName) {
+        this.objectName = objectName;
+    }
+
+
+    public void registerMbean() {
+        if (!mbeanRegistered) {
+            AccessController.doPrivileged(new PrivilegedAction<Object>() {
+
+                @Override
+                public Object run() {
+                    ObjectName objectName = NetconfDataSourceStatManager.addDataSource(NetconfDataSource.this,
+                            NetconfDataSource.this.name);
+
+                    NetconfDataSource.this.setObjectName(objectName);
+                    NetconfDataSource.this.mbeanRegistered = true;
+
+                    return null;
+                }
+            });
+        }
+    }
+
+    public void unregisterMbean() {
+        if (mbeanRegistered) {
+            AccessController.doPrivileged(new PrivilegedAction<Object>() {
+
+                @Override
+                public Object run() {
+                    NetconfDataSourceStatManager.removeDataSource(NetconfDataSource.this);
+                    NetconfDataSource.this.mbeanRegistered = false;
+                    return null;
+                }
+            });
+        }
+    }
+
+    public boolean isMbeanRegistered() {
+        return mbeanRegistered;
+    }
+
+
+    public Map<String, Object> getStatData() {
+        Map<String, Object> dataMap = new LinkedHashMap<String, Object>();
+        dataMap.put("Identity", System.identityHashCode(this));
+        dataMap.put("Name", this.getName());
+        dataMap.put("URL", this.getUrl());
+        dataMap.put("UserName", this.getUsername());
+        dataMap.put("MaxPoolSize", this.getMaxPoolSize());
+        dataMap.put("ConnectCount", this.connectCount);
+        return dataMap;
+    }
+
+    @Override
+    public ObjectName preRegister(MBeanServer server, ObjectName name) throws Exception {
+        if (server != null) {
+            try {
+                if (server.isRegistered(name)) {
+                    server.unregisterMBean(name);
+                }
+            } catch (Exception ex) {
+                logger.warn("DruidDataSource preRegister error", ex);
+            }
+        }
+        return name;
+    }
+
+    @Override
+    public void postRegister(Boolean registrationDone) {
+
+    }
+
+    @Override
+    public void preDeregister() throws Exception {
+
+    }
+
+    @Override
+    public void postDeregister() {
+
     }
 }
