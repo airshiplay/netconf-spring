@@ -33,7 +33,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     protected ReentrantLock activeConnectionLock = new ReentrantLock();
 
     private long connectCount = 0L;
-
+    private long discardConnectCount = 0L;
     protected volatile long connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile long readTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile long kexTimeout = DEFAULT_CONNECTION_TIMEOUT;
@@ -178,7 +178,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
 
     private NetconfPooledConnection getConnectionInternal(long connectionTimeout, NetconfSubscriber subscriber) throws NetworkException {
         NetconfConnectionHolder holder = null;
-        logger.debug("Fetching Netconf Connection from DataSource");
+        logger.debug("Fetching Netconf Connection from DataSource {}", this.url);
         try {
             boolean tryLock = lock.tryLock(connectionTimeout, TimeUnit.MILLISECONDS);
             if (tryLock) {
@@ -232,7 +232,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 } catch (InterruptedException e) {
                     throw new NetworkException(e);
                 }
-                logger.debug("Fetched Netconf Connection from DataSource");
+                logger.debug("Fetched Netconf Connection from DataSource {}", this.url);
                 return new NetconfPooledConnection(holder);
             } else {
                 throw new NetconfTimeoutException(this.url + " getConnection Timeout:" + connectionTimeout);
@@ -253,6 +253,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     public void discardConnection(NetconfPooledConnection realConnection) {
         lock.lock();
         connectCount--;
+        discardConnectCount++;
         device.closeSession(realConnection.sessionName);
         lock.unlock();
     }
@@ -357,6 +358,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         dataMap.put("UserName", this.getUsername());
         dataMap.put("MaxPoolSize", this.getMaxPoolSize());
         dataMap.put("ConnectCount", this.connectCount);
+        dataMap.put("DiscardConnectCount", this.discardConnectCount);
         return dataMap;
     }
 

@@ -17,6 +17,7 @@ public class NetconfStatViewServletConfiguration {
     public ServletRegistrationBean netconfStatViewServletRegistrationBean() {
         NetconfProperties.StatViewServlet config = netconfProperties.getStatViewServlet();
         ServletRegistrationBean registrationBean = new ServletRegistrationBean();
+        registrationBean.setName("netconfStatViewServlet");
         registrationBean.setServlet(new com.airlenet.netconf.datasource.support.http.StatViewServlet());
         registrationBean.addUrlMappings(new String[]{config.getUrlPattern() != null ? config.getUrlPattern() : "/netconf/*"});
         if (config.getAllow() != null) {

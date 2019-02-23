@@ -2,14 +2,8 @@ package com.airlenet.netconf.datasource.support.http;
 
 import com.airlenet.netconf.datasource.stat.NetconfStatService;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 public class StatViewServlet extends ResourceServlet {
-    private NetconfStatService statService             = NetconfStatService.getInstance();
+    private NetconfStatService statService = NetconfStatService.getInstance();
 
 
     public StatViewServlet() {

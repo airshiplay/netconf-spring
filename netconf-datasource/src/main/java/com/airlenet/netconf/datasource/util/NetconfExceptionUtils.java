@@ -46,25 +46,27 @@ public class NetconfExceptionUtils {
         if (e == null) {
             return null;
         }
-        if (e.getCause() == null) {
+        Throwable cause = e.getCause();
+        if (cause == null) {
             return e;
         }
-        if (e.getCause() instanceof SocketTimeoutException) {
-            return (SocketTimeoutException) e.getCause();
+        if (cause instanceof SocketTimeoutException) {
+            return (SocketTimeoutException) cause;
         }
-        if (e.getCause() instanceof SessionClosedException) {
-            return (SessionClosedException) e.getCause();
+        if (cause instanceof SessionClosedException) {
+            return (SessionClosedException) cause;
         }
-        if (e.getCause() instanceof IOException) {
-            if (e.getCause().getCause() != null && e.getCause().getCause() instanceof ConnectException) {
-                return (ConnectException) e.getCause();
-            } else if (e.getCause().getCause().getCause() != null && e.getCause().getCause().getCause() instanceof ConnectException) {
-                return (ConnectException) e.getCause();
+        if (cause instanceof IOException) {
+            Throwable cause2 = cause.getCause();
+            if (cause2 != null && cause2 instanceof ConnectException) {
+                return (ConnectException) cause2;
+            } else if (cause2.getCause() != null && cause2.getCause() instanceof ConnectException) {
+                return (ConnectException) cause2.getCause();
             }
-            return (IOException) e.getCause();
+            return (IOException) cause;
         }
-        if (e.getCause() instanceof JNCException) {
-            return (JNCException) e.getCause();
+        if (cause instanceof JNCException) {
+            return (JNCException) cause;
         }
         return e;
     }

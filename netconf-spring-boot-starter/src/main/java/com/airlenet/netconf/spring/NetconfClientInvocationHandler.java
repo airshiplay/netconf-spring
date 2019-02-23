@@ -37,8 +37,13 @@ public class NetconfClientInvocationHandler implements InvocationHandler {
             Class[] objects = Arrays.stream(method.getParameters()).skip(3).flatMap(parameter -> Stream.of(parameter.getType())).collect(Collectors.toList()).toArray(new Class[args.length - 3]);
 
             Method connectionMethod = NetconfPooledConnection.class.getMethod(method.getName(), objects);
-            invoke = connectionMethod.invoke(connection, connectionArgs);
-            connection.close();
+            try {
+                invoke = connectionMethod.invoke(connection, connectionArgs);
+            } finally {
+                connection.close();
+            }
+
+
         } else if (method.getParameters()[0].getType() == NetconfDevice.class) {
             NetconfDevice netconfDevice = (NetconfDevice) args[0];
             Object[] connectionArgs = new Object[args.length - 1];
@@ -53,10 +58,12 @@ public class NetconfClientInvocationHandler implements InvocationHandler {
             Class[] objects = Arrays.stream(method.getParameters()).skip(1).flatMap(parameter -> Stream.of(parameter.getType())).collect(Collectors.toList()).toArray(new Class[args.length - 1]);
 
             Method connectionMethod = NetconfPooledConnection.class.getMethod(method.getName(), objects);
-            invoke = connectionMethod.invoke(connection, new Object[]{connectionArgs});
-            connection.close();
+            try {
+                invoke = connectionMethod.invoke(connection, new Object[]{connectionArgs});
+            } finally {
+                connection.close();
+            }
         }
-
         return invoke;
     }
 }

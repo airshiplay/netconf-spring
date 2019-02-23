@@ -143,7 +143,7 @@ public abstract class ResourceServlet extends HttpServlet {
 
         String filePath = getFilePath(fileName);
 
-        if (filePath.endsWith(".html")) {
+        if (filePath.endsWith(".htm")) {
             response.setContentType("text/html; charset=utf-8");
         }
         if (fileName.endsWith(".jpg")) {
