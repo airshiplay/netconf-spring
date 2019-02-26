@@ -366,8 +366,9 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
             dataMap.put("TimeZone", this.getTimeZone());
         }
         dataMap.put("MaxPoolSize", this.getMaxPoolSize());
-        dataMap.put("ConnectSessionCount", this.connectCount);
-        dataMap.put("DiscardConnectSessionCount", this.discardConnectCount);
+        dataMap.put("ConnectionCount", this.connectCount);
+        dataMap.put("ConnectionQueueSize",connectionQueue.size());
+        dataMap.put("DiscardConnectionCount", this.discardConnectCount);
         dataMap.put("Subscriber", statSubscriberMap);
         dataMap.put("ReconnectionCount", this.statReconnectionCount);
         return dataMap;
