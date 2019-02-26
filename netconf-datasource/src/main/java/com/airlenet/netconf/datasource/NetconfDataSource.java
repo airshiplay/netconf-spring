@@ -2,6 +2,8 @@ package com.airlenet.netconf.datasource;
 
 import com.airlenet.netconf.datasource.exception.NetconfDataSourceClosedException;
 import com.airlenet.netconf.datasource.exception.GetNetconfConnectionTimeoutException;
+import com.airlenet.netconf.datasource.exception.NetconfIOException;
+import com.airlenet.netconf.datasource.exception.NetconfJNCException;
 import com.airlenet.netconf.datasource.stat.NetconfDataSourceStatManager;
 import com.airlenet.netconf.datasource.util.Utils;
 import com.airlenet.network.NetworkException;
@@ -191,7 +193,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                     if (connectionQueue.isEmpty() && connectCount < maxPoolSize) {
                         //创建连接
                         if (!device.isConnect()) {
-                            logger.debug(this.url + " Connect Netconf Device");
+                            logger.debug("Connect Netconf Device {},connectionTimeout={},kexTimeout={}", this.url, connectionTimeout, kexTimeout);
                             device.connect(username, null, Math.toIntExact(connectionTimeout), Math.toIntExact(kexTimeout));
                         }
                         long connectionId = connectCount + 1;
@@ -203,8 +205,8 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                             device.newSession(jncSubscriber, sessionName);
                         } catch (Exception e) {//断链，重新连接 TODO 需将所有连接重置，并重新建联
                             this.statReconnectionCount++;
-                            logger.debug(this.url + " Again Connect Netconf Device");
-                            device.connect(username, (int) connectionTimeout);
+                            logger.debug("Again Connect Netconf Device {},connectionTimeout={},kexTimeout={}", this.url, connectionTimeout, kexTimeout);
+                            device.connect(username, null, Math.toIntExact(connectionTimeout), Math.toIntExact(kexTimeout));
                             device.newSession(jncSubscriber, sessionName);
                         }
                         SSHSession sshSession = device.getSSHSession(sessionName);
@@ -217,9 +219,9 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 } catch (YangException e) {
                     throw new NetconfException(e);
                 } catch (IOException e) {
-                    throw new NetconfException(e);
+                    throw new NetconfIOException(e);
                 } catch (JNCException e) {
-                    throw new NetconfException(e);
+                    throw new NetconfJNCException(e);
                 } finally {
                     lock.unlock();
                 }
@@ -367,7 +369,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         }
         dataMap.put("MaxPoolSize", this.getMaxPoolSize());
         dataMap.put("ConnectionCount", this.connectCount);
-        dataMap.put("ConnectionQueueSize",connectionQueue.size());
+        dataMap.put("IdleConnectionSize", connectionQueue.size());
         dataMap.put("DiscardConnectionCount", this.discardConnectCount);
         dataMap.put("Subscriber", statSubscriberMap);
         dataMap.put("ReconnectionCount", this.statReconnectionCount);
