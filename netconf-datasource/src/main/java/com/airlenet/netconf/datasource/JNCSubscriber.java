@@ -13,16 +13,10 @@ public class JNCSubscriber extends IOSubscriber {
     private static final String OnlineNotification = "<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><connect></connect></notification>";
     private static final String OfflineNotification = "<notification xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\"><eventTime>%s</eventTime><disconnect></disconnect></notification>";
 
-    private final NetconfSubscriber netconfSubscriber;
+    private NetconfSubscriber netconfSubscriber;
     private final String url;
     private String sessionName;
-
-    public JNCSubscriber(boolean rawmode, String url,
-                         String stream, NetconfSubscriber netconfSubscriber) {
-        super(rawmode);
-        this.netconfSubscriber = netconfSubscriber;
-        this.url = url;
-    }
+    private String stream;
 
     public JNCSubscriber(String url, NetconfSubscriber netconfSubscriber) {
         super(false);
@@ -39,14 +33,14 @@ public class JNCSubscriber extends IOSubscriber {
 
     @Override
     public void input(String msg) {
-        logger.debug("url={},sessionName={},msg={}", this.url, sessionName, msg);
+        logger.debug("url={},sessionName={},stream={},msg={}", this.url, sessionName, stream, msg);
         if (netconfSubscriber != null)
             netconfSubscriber.input(this.url, msg);
     }
 
     @Override
     public void output(String msg) {
-        logger.debug("url={},sessionName={},msg={}", this.url, sessionName, msg);
+        logger.debug("url={},sessionName={},stream={},msg={}", this.url, sessionName, stream, msg);
         if (netconfSubscriber != null)
             netconfSubscriber.output(this.url, msg);
     }
@@ -63,6 +57,15 @@ public class JNCSubscriber extends IOSubscriber {
 
     }
 
-    public void subscriberException(Exception e) {
+    public void setNetconfSubscriber(NetconfSubscriber netconfSubscriber) {
+        this.netconfSubscriber = netconfSubscriber;
+    }
+
+    public String getStream() {
+        return stream;
+    }
+
+    public void setStream(String stream) {
+        this.stream = stream;
     }
 }

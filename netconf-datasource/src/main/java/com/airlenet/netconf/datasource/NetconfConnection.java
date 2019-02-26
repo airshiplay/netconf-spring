@@ -1,10 +1,14 @@
 package com.airlenet.netconf.datasource;
 
+import com.airlenet.netconf.datasource.exception.*;
+import com.airlenet.netconf.datasource.util.NetconfExceptionType;
 import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 
 public class NetconfConnection implements NetworkConnection {
 
@@ -15,6 +19,7 @@ public class NetconfConnection implements NetworkConnection {
     protected volatile boolean abandoned = false;
     protected boolean transaction;
     protected JNCSubscriber jncSubscriber;
+    protected String stream;
 
     public NetconfConnection(String sessionName, SSHSession sshSession, NetconfSession netconfSession, JNCSubscriber jncSubscriber) {
         this.netconfSession = netconfSession;
@@ -28,10 +33,8 @@ public class NetconfConnection implements NetworkConnection {
     public void close() throws NetworkException {
         try {
             netconfSession.closeSession();
-        } catch (JNCException e) {
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
+        } catch (Exception e) {
+            throw getCauseException(e);
         }
     }
 
@@ -66,73 +69,48 @@ public class NetconfConnection implements NetworkConnection {
     }
 
     @Override
-    public void commit() throws NetworkException {
+    public void commit() throws NetconfException {
         try {
             netconfSession.commit();//now commit them 确认提交
-        } catch (JNCException e) {
-            throw new NetconfException(e);
-        } catch (SessionClosedException e) {
-            abandoned = true;
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
+        } catch (Exception e) {
+            throw getCauseException(e);
         }
     }
 
-    public NodeSet get(String xpath) throws NetworkException {
+    public NodeSet get(String xpath) throws NetconfException {
         try {
             return netconfSession.get(xpath);
-        } catch (JNCException e) {
-            throw new NetconfException(e);
-        } catch (SessionClosedException e) {
-            abandoned = true;
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
+        } catch (Exception e) {
+            throw getCauseException(e);
         }
     }
 
-    public NodeSet get(Element subtreeFilter) throws NetworkException {
+    public NodeSet get(Element subtreeFilter) throws NetconfException {
         try {
             return netconfSession.get(subtreeFilter);
-        } catch (JNCException e) {
-            throw new NetconfException(e);
-        } catch (SessionClosedException e) {
-            abandoned = true;
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
+        } catch (Exception e) {
+            throw getCauseException(e);
         }
     }
 
 
-    public NodeSet getConfig(String xpath) throws NetworkException {
+    public NodeSet getConfig(String xpath) throws NetconfException {
         try {
             return netconfSession.getConfig(xpath);
-        } catch (JNCException e) {
-            throw new NetconfException(e);
-        } catch (SessionClosedException e) {
-            abandoned = true;
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
+        } catch (Exception e) {
+            throw getCauseException(e);
         }
     }
 
-    public NodeSet getConfig(Element subtreeFilter) throws NetworkException {
+    public NodeSet getConfig(Element subtreeFilter) throws NetconfException {
         try {
             return netconfSession.getConfig(subtreeFilter);
-        } catch (JNCException e) {
-            throw new NetconfException(e);
-        } catch (SessionClosedException e) {
-            abandoned = true;
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
+        } catch (Exception e) {
+            throw getCauseException(e);
         }
     }
 
-    public void editConfig(Element configTree) throws NetworkException {
+    public void editConfig(Element configTree) throws NetconfException {
         if (this.transaction && isCandidate()) {
             try {
                 netconfSession.discardChanges();//现将 上次没有提交的配置 还原
@@ -143,35 +121,20 @@ public class NetconfConnection implements NetworkConnection {
                     netconfSession.confirmedCommit(60);// candidates are now updated 1分钟内没有确认 则还原配置
                 }
                 netconfSession.commit();//now commit them 确认提交
-            } catch (JNCException e) {
-                throw new NetconfException(e);
-            } catch (SessionClosedException e) {
-                abandoned = true;
-                throw new NetconfException(e);
-            } catch (IOException e) {
-                throw new NetconfException(e);
+            } catch (Exception e) {
+                throw getCauseException(e);
             } finally {
                 try {
                     netconfSession.unlock(NetconfSession.CANDIDATE);
-                } catch (JNCException e) {
-                    throw new NetconfException(e);
-                } catch (SessionClosedException e) {
-                    abandoned = true;
-                    throw new NetconfException(e);
-                } catch (IOException e) {
-                    throw new NetconfException(e);
+                } catch (Exception e) {
+                    throw getCauseException(e);
                 }
             }
         } else {
             try {
                 netconfSession.editConfig(configTree);
-            } catch (JNCException e) {
-                throw new NetconfException(e);
-            } catch (SessionClosedException e) {
-                abandoned = true;
-                throw new NetconfException(e);
-            } catch (IOException e) {
-                throw new NetconfException(e);
+            } catch (Exception e) {
+                throw getCauseException(e);
             }
         }
 
@@ -183,14 +146,11 @@ public class NetconfConnection implements NetworkConnection {
 
     public void subscription(String stream) throws NetconfException {
         try {
+            this.stream = stream;
+            jncSubscriber.setStream(stream);
             netconfSession.createSubscription(stream);
-        } catch (JNCException e) {
-            throw new NetconfException(e);
-        } catch (SessionClosedException e) {
-            abandoned = true;
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
+        } catch (Exception e) {
+            throw getCauseException(e);
         }
     }
 
@@ -202,19 +162,44 @@ public class NetconfConnection implements NetworkConnection {
         return netconfSession.getCapabilities().hasNotification();
     }
 
+    public void setNetconfSubscriber(NetconfSubscriber netconfSubscriber) {
+        this.jncSubscriber.setNetconfSubscriber(netconfSubscriber);
+    }
+
     public Element receiveNotification() throws NetconfException {
         try {
-            return this.netconfSession.receiveNotification();
-        } catch (SessionClosedException e) {
-            abandoned = true;
-            throw new NetconfException(e);
-        } catch (IOException e) {
-            throw new NetconfException(e);
-        } catch (JNCException e) {
-            throw new NetconfException(e);
+            Element receiveNotification = this.netconfSession.receiveNotification();
+            return receiveNotification;
         } catch (Exception e) {
-            throw new NetconfException(e);
+            throw getCauseException(e);
         }
     }
 
+    private NetconfException getCauseException(Exception e) {
+        if (e instanceof SocketTimeoutException) {
+            return new NetconfSocketTimeoutException(e);
+        }
+        if (e instanceof SessionClosedException) {
+            abandoned = true;
+            return new NetconfConnectionClosedException(e);
+        }
+        if (e instanceof IOException) {
+            Throwable cause2 = e.getCause();
+            if (cause2 != null && cause2 instanceof ConnectException) {
+                return new NetconfConnectException(e);
+            } else if (cause2.getCause() != null && cause2.getCause() instanceof ConnectException) {
+                return new NetconfConnectException(e);
+            }
+            return new NetconfIOException(e);
+        }
+        if (e instanceof JNCException) {
+            if (e.getCause().getMessage().startsWith("Timeout error:")) {
+                return new NetconfJNCTimeOutException(e);
+            } else if (e.getCause().getMessage().startsWith("Authentication failed")) {
+                return new NetconfAuthException(e);
+            }
+            return new NetconfJNCException(e);
+        }
+        return new NetconfException(e);
+    }
 }

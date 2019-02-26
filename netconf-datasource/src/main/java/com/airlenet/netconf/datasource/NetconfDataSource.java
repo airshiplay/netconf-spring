@@ -1,10 +1,11 @@
 package com.airlenet.netconf.datasource;
 
+import com.airlenet.netconf.datasource.exception.NetconfDataSourceClosedException;
+import com.airlenet.netconf.datasource.exception.GetNetconfConnectionTimeoutException;
 import com.airlenet.netconf.datasource.stat.NetconfDataSourceStatManager;
-import com.airlenet.network.NetworkDataSource;
+import com.airlenet.netconf.datasource.util.Utils;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
-import com.airlenet.netconf.datasource.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,11 +15,9 @@ import javax.management.ObjectName;
 import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -30,10 +29,11 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     public final static int DEFAULT_MAX_POOL_SIZE = 8;
     public final static int DEFAULT_CONNECTION_TIMEOUT = 0;
     private String initStackTrace;
-    protected ReentrantLock activeConnectionLock = new ReentrantLock();
-
     private long connectCount = 0L;
     private long discardConnectCount = 0L;
+    private Map<String, Long> statSubscriberMap = new LinkedHashMap<>();
+    private long statReconnectionCount = 0l;
+    private long closeTimeMillis = -1L;
     protected volatile long connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile long readTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile long kexTimeout = DEFAULT_CONNECTION_TIMEOUT;
@@ -97,6 +97,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
             this.closing = true;
             connectionQueue.clear();
             device.close();
+            this.closeTimeMillis = System.currentTimeMillis();
             unregisterMbean();
             this.closed = true;
         } finally {
@@ -177,6 +178,10 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
 
 
     private NetconfPooledConnection getConnectionInternal(long connectionTimeout, NetconfSubscriber subscriber) throws NetworkException {
+        if (closed) {
+            throw new NetconfDataSourceClosedException("dataSource already closed at " + new Date(closeTimeMillis));
+        }
+
         NetconfConnectionHolder holder = null;
         logger.debug("Fetching Netconf Connection from DataSource {}", this.url);
         try {
@@ -197,6 +202,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                         try {
                             device.newSession(jncSubscriber, sessionName);
                         } catch (Exception e) {//断链，重新连接 TODO 需将所有连接重置，并重新建联
+                            this.statReconnectionCount++;
                             logger.debug(this.url + " Again Connect Netconf Device");
                             device.connect(username, (int) connectionTimeout);
                             device.newSession(jncSubscriber, sessionName);
@@ -235,7 +241,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 logger.debug("Fetched Netconf Connection from DataSource {}", this.url);
                 return new NetconfPooledConnection(holder);
             } else {
-                throw new NetconfTimeoutException(this.url + " getConnection Timeout:" + connectionTimeout);
+                throw new GetNetconfConnectionTimeoutException(this.url + " getConnection Timeout:" + connectionTimeout);
             }
 
         } catch (InterruptedException e) {
@@ -356,9 +362,14 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         dataMap.put("Name", this.getName());
         dataMap.put("URL", this.getUrl());
         dataMap.put("UserName", this.getUsername());
+        if (this.getTimeZone() != null) {
+            dataMap.put("TimeZone", this.getTimeZone());
+        }
         dataMap.put("MaxPoolSize", this.getMaxPoolSize());
-        dataMap.put("ConnectCount", this.connectCount);
-        dataMap.put("DiscardConnectCount", this.discardConnectCount);
+        dataMap.put("ConnectSessionCount", this.connectCount);
+        dataMap.put("DiscardConnectSessionCount", this.discardConnectCount);
+        dataMap.put("Subscriber", statSubscriberMap);
+        dataMap.put("ReconnectionCount", this.statReconnectionCount);
         return dataMap;
     }
 
@@ -389,5 +400,9 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     @Override
     public void postDeregister() {
 
+    }
+
+    public void updateNotificationCount(String stream, long receiveSubscriberCount) {
+        statSubscriberMap.put(stream, receiveSubscriberCount);
     }
 }

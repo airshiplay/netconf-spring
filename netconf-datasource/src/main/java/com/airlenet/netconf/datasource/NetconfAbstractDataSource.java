@@ -3,6 +3,7 @@ package com.airlenet.netconf.datasource;
 import com.airlenet.network.NetworkDataSource;
 
 import java.util.Date;
+import java.util.TimeZone;
 
 public abstract class NetconfAbstractDataSource implements NetworkDataSource {
     protected volatile String username;
@@ -12,7 +13,7 @@ public abstract class NetconfAbstractDataSource implements NetworkDataSource {
     protected final Date createdTime = new Date();
     protected Date initedTime;
     protected long id;
-
+    protected TimeZone timeZone;
     protected String name;
 
     public long getID() {
@@ -24,6 +25,14 @@ public abstract class NetconfAbstractDataSource implements NetworkDataSource {
             return name;
         }
         return "DataSource-" + System.identityHashCode(this);
+    }
+
+    public TimeZone getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(TimeZone timeZone) {
+        this.timeZone = timeZone;
     }
 
     public String getUsername() {
