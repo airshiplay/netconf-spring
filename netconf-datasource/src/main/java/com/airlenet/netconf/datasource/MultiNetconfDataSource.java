@@ -31,7 +31,7 @@ public class MultiNetconfDataSource extends NetconfDataSource implements MultiNe
     }
 
     //    @Override
-    public final NetconfPooledConnection getConnectionDirect(long maxWaitMillis) throws NetworkException {
+    private final NetconfPooledConnection getConnectionDirect(long maxWaitMillis) throws NetworkException {
         throw new IllegalArgumentException("");
     }
 
