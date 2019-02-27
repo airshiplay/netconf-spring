@@ -11,6 +11,7 @@ import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NetconfStatService implements NetconfStatServiceMBean {
@@ -36,7 +37,34 @@ public class NetconfStatService implements NetconfStatServiceMBean {
         if (url.equals("/datasource.json")) {
             return returnJSONResult(RESULT_CODE_SUCCESS, statManagerFacade.getDataSourceStatDataList());
         }
+        if (url.equals("/activeConnectionStackTrace.json")) {
+            return returnJSONResult(RESULT_CODE_SUCCESS, statManagerFacade.getActiveConnStackTraceList());
+        }
+        if (url.startsWith("/datasource-")) {
+            Integer id = StringUtils.subStringToInteger(url, "datasource-", ".");
+            Object result = statManagerFacade.getDataSourceStatData(id);
+            return returnJSONResult(result == null ? RESULT_CODE_ERROR : RESULT_CODE_SUCCESS, result);
+        }
+        if (url.startsWith("/connectionInfo-") && url.endsWith(".json")) {
+            Integer id = StringUtils.subStringToInteger(url, "connectionInfo-", ".");
+            List<?> connectionInfoList = statManagerFacade.getPoolingConnectionInfoByDataSourceId(id);
+            return returnJSONResult(connectionInfoList == null ? RESULT_CODE_ERROR : RESULT_CODE_SUCCESS,
+                    connectionInfoList);
+        }
+        if (url.startsWith("/activeConnectionStackTrace-") && url.endsWith(".json")) {
+            Integer id = StringUtils.subStringToInteger(url, "activeConnectionStackTrace-", ".");
+            return returnJSONActiveConnectionStackTrace(id);
+        }
+
         return returnJSONResult(RESULT_CODE_ERROR, "Do not support this request, please contact with administrator.");
+    }
+
+    private String returnJSONActiveConnectionStackTrace(Integer id) {
+        List<String> result = statManagerFacade.getActiveConnectionStackTraceByDataSourceId(id);
+        if (result == null) {
+            return returnJSONResult(RESULT_CODE_ERROR, "require set removeAbandoned=true");
+        }
+        return returnJSONResult(RESULT_CODE_SUCCESS, result);
     }
 
     public static String returnJSONResult(int resultCode, Object content) {

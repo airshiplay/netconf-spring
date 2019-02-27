@@ -16,10 +16,8 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.sql.Connection;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -283,6 +281,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 } catch (InterruptedException e) {
                     throw new NetworkException(e);
                 }
+                holder.incrementUseCount();
                 logger.debug("Fetched Netconf Connection {} from DataSource {}", holder.conn.getSessionName(), this.url);
                 return new NetconfPooledConnection(holder);
             } else {
@@ -489,5 +488,34 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
 
     protected void updateNotificationCount(String stream, long receiveSubscriberCount) {
         statSubscriberMap.put(stream, receiveSubscriberCount);
+    }
+
+    public List<String> getActiveConnectionStackTrace() {
+        List<String> list = new ArrayList<String>();
+
+//        for (NetconfPooledConnection conn : this.getActiveConnections()) {
+//            list.add(Utils.toString(conn.getConnectStackTrace()));
+//        }
+
+        return list;
+    }
+
+    public List<Map<String, Object>> getPoolingConnectionInfo() {
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        lock.lock();
+        try {
+            for (int i = 0; i < holders.size(); ++i) {
+                NetconfConnectionHolder connHolder = holders.get(i);
+                NetconfConnection conn = connHolder.conn;
+                Map<String, Object> map = new LinkedHashMap<String, Object>();
+                map.put("id", System.identityHashCode(conn));
+                map.put("connectionId", connHolder.getConnectionId());
+                map.put("useCount", connHolder.getUseCount());
+                list.add(map);
+            }
+        } finally {
+            lock.unlock();
+        }
+        return list;
     }
 }

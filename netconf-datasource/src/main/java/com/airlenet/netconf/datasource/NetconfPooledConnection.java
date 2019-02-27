@@ -1,5 +1,6 @@
 package com.airlenet.netconf.datasource;
 
+import com.airlenet.netconf.datasource.util.Utils;
 import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkPooledConnection;
 import com.tailf.jnc.Element;
@@ -22,6 +23,7 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
     protected volatile boolean closed = false;
     protected long receiveSubscriberCount;
     protected String stream;
+    protected String runStackTrace;
 
     public NetconfPooledConnection(NetconfConnectionHolder holder) {
         super(holder.conn.sessionName, holder.conn.sshSession, holder.conn.netconfSession, holder.conn.jncSubscriber);
@@ -74,6 +76,7 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         } else {//回收链接
             holder.dataSource.recycle(this);
         }
+        holder.recycle();
 
         this.holder = null;
         closed = true;
@@ -113,33 +116,40 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
 
     @Override
     public NodeSet get(String xpath) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         return conn.get(xpath);
     }
 
     @Override
     public NodeSet get(Element subtreeFilter) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         return conn.get(subtreeFilter);
     }
 
     @Override
     public NodeSet getConfig(String xpath) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         return conn.getConfig(xpath);
     }
 
     @Override
     public NodeSet getConfig(Element subtreeFilter) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         return conn.getConfig(subtreeFilter);
     }
 
     @Override
     public void editConfig(Element configTree) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         conn.editConfig(configTree);
     }
 
     @Override
     public void subscription(String stream) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         this.stream = stream;
         conn.subscription(stream);
+        holder.setStream(stream);
         this.receiveSubscriberCount = 0;
         holder.dataSource.updateSubscriberCount(conn.stream);
         holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
@@ -147,17 +157,21 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
 
     @Override
     public void subscription(String stream, String eventFilter, String startTime) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         this.stream = stream;
         conn.subscription(stream, eventFilter, startTime);
         this.receiveSubscriberCount = 0;
+        holder.setStream(stream);
         holder.dataSource.updateSubscriberCount(conn.stream);
         holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
     }
 
     @Override
     public void subscription(String stream, String eventFilter, String startTime, String stopTime) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         this.stream = stream;
         conn.subscription(stream, eventFilter, startTime, stopTime);
+        holder.setStream(stream);
         this.receiveSubscriberCount = 0;
         holder.dataSource.updateSubscriberCount(conn.stream);
         holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
@@ -165,6 +179,7 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
 
     @Override
     public Element receiveNotification() throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         Element receiveNotification = conn.receiveNotification();
         if (holder != null) {
             this.receiveSubscriberCount++;
@@ -173,12 +188,11 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         return receiveNotification;
     }
 
-    @Override
     public String getRunStackTrace() {
-        return conn.getRunStackTrace();
+        return runStackTrace;
     }
 
     public String getStream() {
-        return stream;
+        return holder.getStream();
     }
 }

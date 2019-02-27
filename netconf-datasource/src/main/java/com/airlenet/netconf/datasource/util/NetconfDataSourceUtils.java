@@ -85,4 +85,32 @@ public class NetconfDataSourceUtils {
             return null;
         }
     }
+    public static List<String> getActiveConnectionStackTrace(Object druidDataSource) {
+        if (druidDataSource.getClass() == NetconfDataSource.class) {
+            return ((NetconfDataSource) druidDataSource).getActiveConnectionStackTrace();
+        }
+
+        try {
+            Method method = druidDataSource.getClass().getMethod("getActiveConnectionStackTrace");
+            Object obj = method.invoke(druidDataSource);
+            return (List<String>) obj;
+        } catch (Exception e) {
+            LOG.error("getActiveConnectionStackTrace error", e);
+            return null;
+        }
+    }
+    public static List<Map<String, Object>> getPoolingConnectionInfo(Object druidDataSource) {
+        if (druidDataSource.getClass() == NetconfDataSource.class) {
+            return ((NetconfDataSource) druidDataSource).getPoolingConnectionInfo();
+        }
+
+        try {
+            Method method = druidDataSource.getClass().getMethod("getPoolingConnectionInfo");
+            Object obj = method.invoke(druidDataSource);
+            return (List<Map<String, Object>>) obj;
+        } catch (Exception e) {
+            LOG.error("getPoolingConnectionInfo error", e);
+            return null;
+        }
+    }
 }
