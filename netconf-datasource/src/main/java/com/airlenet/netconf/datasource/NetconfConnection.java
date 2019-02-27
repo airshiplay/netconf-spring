@@ -209,12 +209,17 @@ public class NetconfConnection implements NetworkConnection {
         }
         if (e instanceof IOException) {
             Throwable cause2 = e.getCause();
-            if (cause2 != null && cause2 instanceof ConnectException) {
-                return new NetconfConnectException(e);
-            } else if (cause2 != null && cause2 instanceof SocketTimeoutException) {
-                return new NetconfSocketTimeoutException(e);
-            } else if (cause2.getCause() != null && cause2.getCause() instanceof ConnectException) {
-                return new NetconfConnectException(e);
+            if (cause2 != null) {
+                Throwable cause3 = cause2.getCause();
+                if (cause2 instanceof ConnectException) {
+                    return new NetconfConnectException(e);
+                } else if (cause2 instanceof SocketTimeoutException) {
+                    return new NetconfSocketTimeoutException(e);
+                } else if (cause3 != null) {
+                    if (cause3 instanceof ConnectException) {
+                        return new NetconfConnectException(e);
+                    }
+                }
             }
             return new NetconfIOException(e);
         }
