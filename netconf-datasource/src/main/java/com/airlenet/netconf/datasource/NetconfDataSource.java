@@ -35,6 +35,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     private long connectCount = 0L;
     private long subscriberConnectCount = 0L;
     private long discardConnectCount = 0L;
+    private long lockConnectTimeoutCount = 0L;
     private Map<String, Long> statSubscriberMap = new LinkedHashMap<>();
     private long statReconnectionCount = 0l;
     private long closeTimeMillis = -1L;
@@ -105,7 +106,10 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
             this.closing = true;
             connectionQueue.clear();
             connectCount = 0;
+            discardConnectCount = 0L;
+            subscriberConnectCount = 0L;
             statReconnectionCount = 0;
+            lockConnectTimeoutCount = 0L;
             outputDataInteractionTimeMillis = -1;
             inputDataInteractionTimeMillis = -1;
             connectTimeMillis = -1;
@@ -282,6 +286,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 logger.debug("Fetched Netconf Connection {} from DataSource {}", holder.conn.getSessionName(), this.url);
                 return new NetconfPooledConnection(holder);
             } else {
+                lockConnectTimeoutCount++;
                 throw new GetNetconfConnectionTimeoutException("Fetching Netconf Connection from DataSource " + this.url + ", Timeout:" + connectionTimeout + ", Lock " + this.lock.toString());
             }
 
@@ -441,6 +446,8 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         dataMap.put("IdleConnectionCount", connectionQueue.size());
         dataMap.put("DiscardConnectionCount", this.discardConnectCount);
         dataMap.put("Subscriber", statSubscriberMap);
+
+        dataMap.put("LockConnectTimeoutCount", lockConnectTimeoutCount);
 
         dataMap.put("AutoReconnection", autoReconnection);
         dataMap.put("ReconnectionCount", this.statReconnectionCount);

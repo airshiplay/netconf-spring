@@ -86,6 +86,13 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         }
     }
 
+    public TimeZone getTimeZone() {
+        if (holder != null) {
+            return holder.dataSource.getTimeZone();
+        }
+        return null;
+    }
+
     @Override
     public void rollback() throws NetconfException {
 
