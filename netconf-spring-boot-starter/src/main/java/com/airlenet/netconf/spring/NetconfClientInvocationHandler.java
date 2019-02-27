@@ -2,8 +2,10 @@ package com.airlenet.netconf.spring;
 
 import com.airlenet.netconf.datasource.MultiNetconfDataSource;
 import com.airlenet.netconf.datasource.NetconfPooledConnection;
+import com.airlenet.netconf.spring.autoconfigure.NetconfProperties;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -11,9 +13,11 @@ import java.util.stream.Stream;
 
 public class NetconfClientInvocationHandler implements InvocationHandler {
     final MultiNetconfDataSource multiNetconfDataSource;
+    final NetconfProperties netconfProperties;
 
-    public NetconfClientInvocationHandler(MultiNetconfDataSource multiNetconfDataSource) {
+    public NetconfClientInvocationHandler(MultiNetconfDataSource multiNetconfDataSource, NetconfProperties netconfProperties) {
         this.multiNetconfDataSource = multiNetconfDataSource;
+        this.netconfProperties = netconfProperties;
     }
 
     @Override
@@ -39,6 +43,12 @@ public class NetconfClientInvocationHandler implements InvocationHandler {
             Method connectionMethod = NetconfPooledConnection.class.getMethod(method.getName(), objects);
             try {
                 invoke = connectionMethod.invoke(connection, connectionArgs);
+            } catch (InvocationTargetException e) {
+                if (e.getCause() != null) {
+                    throw e.getCause();
+                } else {
+                    throw e;
+                }
             } finally {
                 connection.close();
             }
@@ -60,6 +70,12 @@ public class NetconfClientInvocationHandler implements InvocationHandler {
             Method connectionMethod = NetconfPooledConnection.class.getMethod(method.getName(), objects);
             try {
                 invoke = connectionMethod.invoke(connection, new Object[]{connectionArgs});
+            } catch (InvocationTargetException e) {
+                if (e.getCause() != null) {
+                    throw e.getCause();
+                } else {
+                    throw e;
+                }
             } finally {
                 connection.close();
             }

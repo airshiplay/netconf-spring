@@ -44,6 +44,8 @@ public class MultiNetconfDataSource extends NetconfDataSource implements MultiNe
                 netconfDataSource.setReadTimeout(this.getReadTimeout());
                 netconfDataSource.setConnectionTimeout(this.getConnectionTimeout());
                 netconfDataSource.setMaxPoolSize(this.getMaxPoolSize());
+                netconfDataSource.setKexTimeout(this.getKexTimeout());
+                netconfDataSource.setAutoReconnection(this.isAutoReconnection());
                 dataSourceObjectMap.put(url, netconfDataSource);
             }
             return netconfDataSource;

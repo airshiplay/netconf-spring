@@ -4,6 +4,7 @@ import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkPooledConnection;
 import com.tailf.jnc.Element;
 import com.tailf.jnc.NetconfSession;
+import com.tailf.jnc.NodeSet;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,6 +21,7 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
     private volatile boolean disable = false;
     protected volatile boolean closed = false;
     protected long receiveSubscriberCount;
+    protected String stream;
 
     public NetconfPooledConnection(NetconfConnectionHolder holder) {
         super(holder.conn.sessionName, holder.conn.sshSession, holder.conn.netconfSession, holder.conn.jncSubscriber);
@@ -77,16 +79,6 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         closed = true;
     }
 
-    @Override
-    public Element receiveNotification() throws NetconfException {
-        Element receiveNotification = super.receiveNotification();
-        if (holder != null) {
-            this.receiveSubscriberCount++;
-
-            holder.dataSource.updateNotificationCount(this.stream, this.receiveSubscriberCount);
-        }
-        return receiveNotification;
-    }
 
     public void updateTimeZone(TimeZone timeZone) {
         if (holder != null) {
@@ -110,5 +102,76 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         } else {
             return "closed-conn-" + System.identityHashCode(this);
         }
+    }
+
+    @Override
+    public NodeSet get(String xpath) throws NetconfException {
+        return conn.get(xpath);
+    }
+
+    @Override
+    public NodeSet get(Element subtreeFilter) throws NetconfException {
+        return conn.get(subtreeFilter);
+    }
+
+    @Override
+    public NodeSet getConfig(String xpath) throws NetconfException {
+        return conn.getConfig(xpath);
+    }
+
+    @Override
+    public NodeSet getConfig(Element subtreeFilter) throws NetconfException {
+        return conn.getConfig(subtreeFilter);
+    }
+
+    @Override
+    public void editConfig(Element configTree) throws NetconfException {
+        conn.editConfig(configTree);
+    }
+
+    @Override
+    public void subscription(String stream) throws NetconfException {
+        this.stream = stream;
+        conn.subscription(stream);
+        this.receiveSubscriberCount = 0;
+        holder.dataSource.updateSubscriberCount(conn.stream);
+        holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+    }
+
+    @Override
+    public void subscription(String stream, String eventFilter, String startTime) throws NetconfException {
+        this.stream = stream;
+        conn.subscription(stream, eventFilter, startTime);
+        this.receiveSubscriberCount = 0;
+        holder.dataSource.updateSubscriberCount(conn.stream);
+        holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+    }
+
+    @Override
+    public void subscription(String stream, String eventFilter, String startTime, String stopTime) throws NetconfException {
+        this.stream = stream;
+        conn.subscription(stream, eventFilter, startTime, stopTime);
+        this.receiveSubscriberCount = 0;
+        holder.dataSource.updateSubscriberCount(conn.stream);
+        holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+    }
+
+    @Override
+    public Element receiveNotification() throws NetconfException {
+        Element receiveNotification = conn.receiveNotification();
+        if (holder != null) {
+            this.receiveSubscriberCount++;
+            holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+        }
+        return receiveNotification;
+    }
+
+    @Override
+    public String getRunStackTrace() {
+        return conn.getRunStackTrace();
+    }
+
+    public String getStream() {
+        return stream;
     }
 }

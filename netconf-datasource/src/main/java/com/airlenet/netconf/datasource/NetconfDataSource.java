@@ -1,9 +1,6 @@
 package com.airlenet.netconf.datasource;
 
-import com.airlenet.netconf.datasource.exception.NetconfDataSourceClosedException;
-import com.airlenet.netconf.datasource.exception.GetNetconfConnectionTimeoutException;
-import com.airlenet.netconf.datasource.exception.NetconfIOException;
-import com.airlenet.netconf.datasource.exception.NetconfJNCException;
+import com.airlenet.netconf.datasource.exception.*;
 import com.airlenet.netconf.datasource.stat.NetconfDataSourceStatManager;
 import com.airlenet.netconf.datasource.util.Utils;
 import com.airlenet.network.NetworkException;
@@ -15,8 +12,11 @@ import javax.management.MBeanRegistration;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,15 +31,21 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     public final static int DEFAULT_MAX_POOL_SIZE = 8;
     public final static int DEFAULT_CONNECTION_TIMEOUT = 0;
     private String initStackTrace;
+    private String lockStackTrace;
     private long connectCount = 0L;
+    private long subscriberConnectCount = 0L;
     private long discardConnectCount = 0L;
     private Map<String, Long> statSubscriberMap = new LinkedHashMap<>();
     private long statReconnectionCount = 0l;
     private long closeTimeMillis = -1L;
+    private long connectTimeMillis = -1L;
+    protected long outputDataInteractionTimeMillis = -1L;
+    protected long inputDataInteractionTimeMillis = -1L;
     protected volatile long connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile long readTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile long kexTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
+    protected volatile boolean autoReconnection = true;
     protected volatile boolean inited;
 
     private volatile boolean closing = false;
@@ -49,7 +55,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     private DeviceUser deviceUser;
 
     protected BlockingQueue<NetconfConnectionHolder> connectionQueue;
-
+    protected ArrayList<NetconfConnectionHolder> holders = new ArrayList<>();
     private boolean mbeanRegistered = false;
 
     private ObjectName objectName;
@@ -98,6 +104,12 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
 
             this.closing = true;
             connectionQueue.clear();
+            connectCount = 0;
+            statReconnectionCount = 0;
+            outputDataInteractionTimeMillis = -1;
+            inputDataInteractionTimeMillis = -1;
+            connectTimeMillis = -1;
+            holders.clear();
             device.close();
             this.closeTimeMillis = System.currentTimeMillis();
             unregisterMbean();
@@ -120,6 +132,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
             this.close();
             this.inited = false;
             this.closed = false;
+            logger.debug("Restart DataSource {}", this.url);
         } finally {
             lock.unlock();
         }
@@ -187,42 +200,68 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         NetconfConnectionHolder holder = null;
         logger.debug("Fetching Netconf Connection from DataSource {}", this.url);
         try {
+            if (lock.isLocked() && logger.isDebugEnabled()) {
+                //lock.lockInterruptibly();
+                logger.debug("Lock Netconf Connection from DataSource {} by {}", this.url, lock.toString());
+            }
             boolean tryLock = lock.tryLock(connectionTimeout, TimeUnit.MILLISECONDS);
             if (tryLock) {
                 try {
+                    lockStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+
                     if (connectionQueue.isEmpty() && connectCount < maxPoolSize) {
-                        //创建连接
-                        if (!device.isConnect()) {
-                            logger.debug("Connect Netconf Device {},connectionTimeout={},kexTimeout={}", this.url, connectionTimeout, kexTimeout);
-                            device.connect(username, null, Math.toIntExact(connectionTimeout), Math.toIntExact(kexTimeout));
-                        }
-                        long connectionId = connectCount + 1;
-                        String sessionName = "datasource-" + connectionId + ":" + Math.random();
-                        NetconfConnection netconfConnection = null;
 
-                        JNCSubscriber jncSubscriber = new JNCSubscriber(url, sessionName, subscriber);
-                        try {
-                            device.newSession(jncSubscriber, sessionName);
-                        } catch (Exception e) {//断链，重新连接 TODO 需将所有连接重置，并重新建联
-                            this.statReconnectionCount++;
-                            logger.debug("Again Connect Netconf Device {},connectionTimeout={},kexTimeout={}", this.url, connectionTimeout, kexTimeout);
-                            device.connect(username, null, Math.toIntExact(connectionTimeout), Math.toIntExact(kexTimeout));
-                            device.newSession(jncSubscriber, sessionName);
-                        }
-                        SSHSession sshSession = device.getSSHSession(sessionName);
-                        NetconfSession netconfSession = device.getSession(sessionName);
-                        netconfConnection = new NetconfConnection(sessionName, sshSession, netconfSession, jncSubscriber);
+                        for (int i = 0; ; i++) {
+                            //创建连接
+                            if (!device.isConnect()) {
+                                logger.debug("Connect Netconf Device {},connectionTimeout={},kexTimeout={}", this.url, connectionTimeout, kexTimeout);
+                                device.connect(username, null, Math.toIntExact(connectionTimeout), Math.toIntExact(kexTimeout));
+                                connectTimeMillis = System.currentTimeMillis();
+                            }
+                            long connectionId = connectCount + 1;
+                            String sessionName = "datasource-" + connectionId + ":" + Math.random();
+                            NetconfConnection netconfConnection = null;
 
-                        holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
-                        connectCount++;
+                            JNCSubscriber jncSubscriber = new JNCSubscriber(this, url, sessionName, subscriber);
+                            try {
+                                device.newSession(jncSubscriber, sessionName);
+                            } catch (Exception e) {//断链，重新连接 TODO 需将所有连接重置，并重新建联
+                                connectCount = 0;
+                                device.close();
+                                connectionQueue.clear();
+                                holders.clear();
+                                logger.error("Fetching Netconf Connection newSession from DataSource " + this.url, e);
+                                if (!autoReconnection && i > 0) {
+                                    throw e;
+                                }
+                                this.statReconnectionCount++;
+
+                                logger.debug("Again Connect Netconf Device {},connectionTimeout={},kexTimeout={}", this.url, connectionTimeout, kexTimeout);
+                                continue;
+                            }
+                            SSHSession sshSession = device.getSSHSession(sessionName);
+                            NetconfSession netconfSession = device.getSession(sessionName);
+                            netconfConnection = new NetconfConnection(sessionName, sshSession, netconfSession, jncSubscriber);
+
+                            holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
+                            holders.add(holder);
+                            connectCount++;
+                            break;
+                        }
+
                     }
                 } catch (YangException e) {
                     throw new NetconfException(e);
+                } catch (SocketTimeoutException e) {
+                    throw new NetconfSocketTimeoutException(e);
+                } catch (ConnectException e) {
+                    throw new NetconfConnectException(e);
                 } catch (IOException e) {
                     throw new NetconfIOException(e);
                 } catch (JNCException e) {
                     throw new NetconfJNCException(e);
                 } finally {
+                    lockStackTrace = "";
                     lock.unlock();
                 }
                 //获取连接
@@ -235,15 +274,15 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                         }
                     }
                     if (holder == null) {
-                        throw new IllegalStateException("DataSource returned null from getConnection(): " + this);
+                        throw new IllegalStateException("NetconfDataSource returned null from getConnection(): " + this);
                     }
                 } catch (InterruptedException e) {
                     throw new NetworkException(e);
                 }
-                logger.debug("Fetched Netconf Connection from DataSource {}", this.url);
+                logger.debug("Fetched Netconf Connection {} from DataSource {}", holder.conn.getSessionName(), this.url);
                 return new NetconfPooledConnection(holder);
             } else {
-                throw new GetNetconfConnectionTimeoutException(this.url + " getConnection Timeout:" + connectionTimeout);
+                throw new GetNetconfConnectionTimeoutException("Fetching Netconf Connection from DataSource " + this.url + ", Timeout:" + connectionTimeout + ", Lock " + this.lock.toString());
             }
 
         } catch (InterruptedException e) {
@@ -262,6 +301,11 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         lock.lock();
         connectCount--;
         discardConnectCount++;
+        if (realConnection.getStream() != null) {
+            subscriberConnectCount--;
+        }
+        holders.remove(realConnection.holder);
+        logger.debug("Discard Netconf Connection {} to DataSource {}", realConnection.getSessionName(), this.url);
         device.closeSession(realConnection.sessionName);
         lock.unlock();
     }
@@ -273,10 +317,21 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
      * @throws NetconfException
      */
     protected void recycle(NetconfPooledConnection pooledConnection) throws NetconfException {
+        lock.lock();
         try {
-            connectionQueue.put(pooledConnection.holder);
+            logger.debug("Recycling Netconf Connection {} to DataSource {}", pooledConnection.getSessionName(), this.url);
+            if (holders.indexOf(pooledConnection.holder) != -1) {
+                connectionQueue.put(pooledConnection.holder);
+                logger.debug("Recycled Netconf Connection {} to DataSource {}", pooledConnection.getSessionName(), this.url);
+            } else {
+                logger.debug("Discarded Netconf Connection {} to DataSource {}", pooledConnection.getSessionName(), this.url);
+            }
         } catch (InterruptedException e) {
+            connectCount--;
+            discardConnectCount++;
             throw new NetconfException(e);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -320,6 +375,13 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         this.objectName = objectName;
     }
 
+    public boolean isAutoReconnection() {
+        return autoReconnection;
+    }
+
+    public void setAutoReconnection(boolean autoReconnection) {
+        this.autoReconnection = autoReconnection;
+    }
 
     public void registerMbean() {
         if (!mbeanRegistered) {
@@ -367,12 +429,20 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         if (this.getTimeZone() != null) {
             dataMap.put("TimeZone", this.getTimeZone());
         }
+        dataMap.put("InitedTime", initedTime);
         dataMap.put("MaxPoolSize", this.getMaxPoolSize());
-        dataMap.put("ConnectionStatus", this.device == null ? false : this.device.isConnect());
-        dataMap.put("ConnectionCount", this.connectCount);
-        dataMap.put("IdleConnectionSize", connectionQueue.size());
+        dataMap.put("Status", this.closed ? "Closed" : (device != null && device.isConnect() ? "Connect" : "DisConnect"));
+        dataMap.put("ConnectTime", new Date(this.connectTimeMillis));
+        dataMap.put("InputDataInteractionTime", new Date(this.inputDataInteractionTimeMillis));
+        dataMap.put("OutputDataInteractionTime", new Date(this.outputDataInteractionTimeMillis));
+
+        dataMap.put("ConnectCount", this.connectCount);
+        dataMap.put("SubscriberConnectCount", this.subscriberConnectCount);
+        dataMap.put("IdleConnectionCount", connectionQueue.size());
         dataMap.put("DiscardConnectionCount", this.discardConnectCount);
         dataMap.put("Subscriber", statSubscriberMap);
+
+        dataMap.put("AutoReconnection", autoReconnection);
         dataMap.put("ReconnectionCount", this.statReconnectionCount);
         return dataMap;
     }
@@ -406,7 +476,11 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
 
     }
 
-    public void updateNotificationCount(String stream, long receiveSubscriberCount) {
+    protected void updateSubscriberCount(String stream) {
+        this.subscriberConnectCount++;
+    }
+
+    protected void updateNotificationCount(String stream, long receiveSubscriberCount) {
         statSubscriberMap.put(stream, receiveSubscriberCount);
     }
 }

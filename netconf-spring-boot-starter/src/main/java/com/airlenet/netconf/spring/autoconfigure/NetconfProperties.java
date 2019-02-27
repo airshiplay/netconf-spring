@@ -10,6 +10,8 @@ public class NetconfProperties {
     private int connectionTimeout = DefaultTimeOut;
     private int kexTimeout = DefaultTimeOut;
     private int maxPoolSize = 8;
+    private boolean autoReconnect = true;
+    private boolean exceptionRestart = true;
     private StatViewServlet statViewServlet = new StatViewServlet();
 
 
@@ -51,6 +53,22 @@ public class NetconfProperties {
 
     public void setAopPatterns(String[] aopPatterns) {
         this.aopPatterns = aopPatterns;
+    }
+
+    public boolean isAutoReconnect() {
+        return autoReconnect;
+    }
+
+    public void setAutoReconnect(boolean autoReconnect) {
+        this.autoReconnect = autoReconnect;
+    }
+
+    public boolean isExceptionRestart() {
+        return exceptionRestart;
+    }
+
+    public void setExceptionRestart(boolean exceptionRestart) {
+        this.exceptionRestart = exceptionRestart;
     }
 
     public StatViewServlet getStatViewServlet() {

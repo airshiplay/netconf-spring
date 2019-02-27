@@ -1,7 +1,7 @@
 package com.airlenet.netconf.datasource;
 
 import com.airlenet.netconf.datasource.exception.*;
-import com.airlenet.netconf.datasource.util.NetconfExceptionType;
+import com.airlenet.netconf.datasource.util.Utils;
 import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
@@ -20,6 +20,7 @@ public class NetconfConnection implements NetworkConnection {
     protected boolean transaction;
     protected JNCSubscriber jncSubscriber;
     protected String stream;
+    protected String runStackTrace;
 
     public NetconfConnection(String sessionName, SSHSession sshSession, NetconfSession netconfSession, JNCSubscriber jncSubscriber) {
         this.netconfSession = netconfSession;
@@ -79,6 +80,7 @@ public class NetconfConnection implements NetworkConnection {
 
     public NodeSet get(String xpath) throws NetconfException {
         try {
+            runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
             return netconfSession.get(xpath);
         } catch (Exception e) {
             throw getCauseException(e);
@@ -87,6 +89,7 @@ public class NetconfConnection implements NetworkConnection {
 
     public NodeSet get(Element subtreeFilter) throws NetconfException {
         try {
+            runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
             return netconfSession.get(subtreeFilter);
         } catch (Exception e) {
             throw getCauseException(e);
@@ -96,6 +99,7 @@ public class NetconfConnection implements NetworkConnection {
 
     public NodeSet getConfig(String xpath) throws NetconfException {
         try {
+            runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
             return netconfSession.getConfig(xpath);
         } catch (Exception e) {
             throw getCauseException(e);
@@ -104,6 +108,7 @@ public class NetconfConnection implements NetworkConnection {
 
     public NodeSet getConfig(Element subtreeFilter) throws NetconfException {
         try {
+            runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
             return netconfSession.getConfig(subtreeFilter);
         } catch (Exception e) {
             throw getCauseException(e);
@@ -111,6 +116,7 @@ public class NetconfConnection implements NetworkConnection {
     }
 
     public void editConfig(Element configTree) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         if (this.transaction && isCandidate()) {
             try {
                 netconfSession.discardChanges();//现将 上次没有提交的配置 还原
@@ -145,10 +151,33 @@ public class NetconfConnection implements NetworkConnection {
     }
 
     public void subscription(String stream) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         try {
             this.stream = stream;
             jncSubscriber.setStream(stream);
             netconfSession.createSubscription(stream);
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public void subscription(String stream, String eventFilter, String startTime) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        try {
+            this.stream = stream;
+            jncSubscriber.setStream(stream);
+            netconfSession.createSubscription(stream, eventFilter, startTime, null);
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public void subscription(String stream, String eventFilter, String startTime, String stopTime) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        try {
+            this.stream = stream;
+            jncSubscriber.setStream(stream);
+            netconfSession.createSubscription(stream, eventFilter, startTime, stopTime);
         } catch (Exception e) {
             throw getCauseException(e);
         }
@@ -168,6 +197,7 @@ public class NetconfConnection implements NetworkConnection {
 
     public Element receiveNotification() throws NetconfException {
         try {
+            runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
             Element receiveNotification = this.netconfSession.receiveNotification();
             return receiveNotification;
         } catch (Exception e) {
@@ -181,25 +211,34 @@ public class NetconfConnection implements NetworkConnection {
         }
         if (e instanceof SessionClosedException) {
             abandoned = true;
-            return new NetconfConnectionClosedException(e);
+            return new NetconfConnectClosedException(e);
+        }
+        if (e instanceof ConnectException) {
+            return new NetconfConnectException(e);
         }
         if (e instanceof IOException) {
             Throwable cause2 = e.getCause();
             if (cause2 != null && cause2 instanceof ConnectException) {
                 return new NetconfConnectException(e);
+            } else if (cause2 != null && cause2 instanceof SocketTimeoutException) {
+                return new NetconfSocketTimeoutException(e);
             } else if (cause2.getCause() != null && cause2.getCause() instanceof ConnectException) {
                 return new NetconfConnectException(e);
             }
             return new NetconfIOException(e);
         }
         if (e instanceof JNCException) {
-            if (e.getCause().getMessage().startsWith("Timeout error:")) {
+            if (e.toString().startsWith("Timeout error:")) {
                 return new NetconfJNCTimeOutException(e);
-            } else if (e.getCause().getMessage().startsWith("Authentication failed")) {
+            } else if (e.toString().startsWith("Authentication failed")) {
                 return new NetconfAuthException(e);
             }
             return new NetconfJNCException(e);
         }
         return new NetconfException(e);
+    }
+
+    public String getRunStackTrace() {
+        return runStackTrace;
     }
 }

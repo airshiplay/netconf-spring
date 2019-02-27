@@ -22,7 +22,7 @@ import java.lang.reflect.Proxy;
 @Configuration
 @ConditionalOnClass({MultiNetconfDataSource.class, NetconfDataSource.class})
 @EnableConfigurationProperties(NetconfProperties.class)
-@Import({NetconfSpringAopConfiguration.class,NetconfStatViewServletConfiguration.class})
+@Import({NetconfSpringAopConfiguration.class, NetconfStatViewServletConfiguration.class})
 public class NetconfDataSourceAutoConfigure {
     @Autowired
     private NetconfProperties netconfProperties;
@@ -35,12 +35,13 @@ public class NetconfDataSourceAutoConfigure {
         multiDataSource.setConnectionTimeout(netconfProperties.getConnectionTimeout());
         multiDataSource.setKexTimeout(netconfProperties.getKexTimeout());
         multiDataSource.setMaxPoolSize(netconfProperties.getMaxPoolSize());
+        multiDataSource.setAutoReconnection(netconfProperties.isAutoReconnect());
         return multiDataSource;
     }
 
     @Bean
     public NetconfClientInvocationHandler netconfClientInvocationHandler() {
-        return new NetconfClientInvocationHandler(multiNetconfDataSource());
+        return new NetconfClientInvocationHandler(multiNetconfDataSource(), netconfProperties);
     }
 
     @Bean

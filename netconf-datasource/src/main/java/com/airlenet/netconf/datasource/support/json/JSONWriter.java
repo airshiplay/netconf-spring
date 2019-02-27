@@ -124,7 +124,7 @@ public class JSONWriter {
             return;
         }
         //SimpleDataFormat is not thread-safe, we need to make it local.
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         writeString(dateFormat.format(date));
     }
 
