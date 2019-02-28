@@ -23,6 +23,7 @@
         <querydsl.version>4.1.4</querydsl.version>
         <play-boot.version>3.0.0-SNAPSHOT</play-boot.version>
         <play.yang.version>1.2.0-SNAPSHOT</play.yang.version>
+        <project.build.timestamp>${timestamp}</project.build.timestamp>
     </properties>
     <modules>
         <module>netconf-common</module>
@@ -90,6 +91,47 @@
         <url>https://github.com/airshiplay/play-netconf</url>
         <tag>HEAD</tag>
     </scm>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <id>generate-timestamp</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create-timestamp</goal>
+                        </goals>
+                        <configuration>
+                            <timestampFormat>yyyy-MM-dd HH:mm:ss.SSSZ</timestampFormat>
+                            <timestampPropertyName>timestamp</timestampPropertyName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Implementation-Title>netconf</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Build>${project.build.timestamp}</Implementation-Build>
+                            <Implementation-Vendor-Id>com.airlenet</Implementation-Vendor-Id>
+                            <Implementation-Vendor>Airlenet Group</Implementation-Vendor>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <profiles>
         <profile>
             <id>release</id>

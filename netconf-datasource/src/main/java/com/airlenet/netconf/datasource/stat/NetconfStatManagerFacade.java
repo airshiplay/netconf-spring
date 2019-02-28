@@ -1,6 +1,7 @@
 package com.airlenet.netconf.datasource.stat;
 
 import com.airlenet.netconf.datasource.NetconfDataSource;
+import com.airlenet.netconf.datasource.VERSION;
 import com.airlenet.netconf.datasource.util.NetconfDataSourceUtils;
 import com.airlenet.netconf.datasource.util.Utils;
 
@@ -18,10 +19,7 @@ public class NetconfStatManagerFacade {
 
     public Map<String, Object> returnJSONBasicStat() {
         Map<String, Object> dataMap = new LinkedHashMap<String, Object>();
-//        dataMap.put("Version", VERSION.getVersionNumber());
-//        dataMap.put("Drivers", getDriversData());
-//        dataMap.put("ResetEnable", isResetEnable());
-//        dataMap.put("ResetCount", getResetCount());
+        dataMap.put("Version", VERSION.getVersionNumber());
         dataMap.put("JavaVMName", System.getProperty("java.vm.name"));
         dataMap.put("JavaVersion", System.getProperty("java.version"));
         dataMap.put("JavaClassPath", System.getProperty("java.class.path"));
