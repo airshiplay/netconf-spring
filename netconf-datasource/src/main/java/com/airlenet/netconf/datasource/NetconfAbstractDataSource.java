@@ -1,9 +1,10 @@
 package com.airlenet.netconf.datasource;
 
+import com.airlenet.netconf.datasource.util.Utils;
 import com.airlenet.network.NetworkDataSource;
 
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class NetconfAbstractDataSource implements NetworkDataSource {
     protected volatile String username;
@@ -15,6 +16,9 @@ public abstract class NetconfAbstractDataSource implements NetworkDataSource {
     protected long id;
     protected TimeZone timeZone;
     protected String name;
+    protected ReentrantLock activeConnectionLock                      = new ReentrantLock();
+    protected final Map<NetconfPooledConnection, Object> activeConnections = new IdentityHashMap<NetconfPooledConnection, Object>();
+    protected final static Object                      PRESENT                                   = new Object();
 
     public long getID() {
         return this.id;
@@ -41,5 +45,24 @@ public abstract class NetconfAbstractDataSource implements NetworkDataSource {
 
     public Date getCreatedTime() {
         return createdTime;
+    }
+
+    public Set<NetconfPooledConnection> getActiveConnections() {
+        activeConnectionLock.lock();
+        try {
+            return new HashSet<NetconfPooledConnection>(this.activeConnections.keySet());
+        } finally {
+            activeConnectionLock.unlock();
+        }
+    }
+
+    public List<String> getActiveConnectionStackTrace() {
+        List<String> list = new ArrayList<String>();
+
+        for (NetconfPooledConnection conn : this.getActiveConnections()) {
+            list.add(Utils.toString(conn.getConnectStackTrace()));
+        }
+
+        return list;
     }
 }

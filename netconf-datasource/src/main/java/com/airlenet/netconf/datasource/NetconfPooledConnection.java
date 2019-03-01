@@ -4,11 +4,8 @@ import com.airlenet.netconf.datasource.util.Utils;
 import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkPooledConnection;
 import com.tailf.jnc.Element;
-import com.tailf.jnc.NetconfSession;
 import com.tailf.jnc.NodeSet;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.TimeZone;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -16,6 +13,8 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
 
     public ReentrantLock lock = new ReentrantLock();
     protected final Thread ownerThread;
+    public StackTraceElement[] connectStackTrace;
+
     private long connectedTimeMillis;
     protected NetconfConnection conn;
     protected volatile NetconfConnectionHolder holder;
@@ -24,6 +23,7 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
     protected long receiveSubscriberCount;
     protected String stream;
     protected String runStackTrace;
+    private long connectedTimeNano;
 
     public NetconfPooledConnection(NetconfConnectionHolder holder) {
         super(holder.conn.sessionName, holder.conn.sshSession, holder.conn.netconfSession, holder.conn.jncSubscriber);
@@ -188,11 +188,51 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         return receiveNotification;
     }
 
+    @Override
+    public void updateInputDataInteraction(String message, long inputCount, long inputTimeMillis) {
+        if (conn != null)
+            conn.updateInputDataInteraction(message, inputCount, inputTimeMillis);
+    }
+
+    @Override
+    public void updateOutputDataInteraction(String message, long outputCount, long outputTimeMillis) {
+        if (conn != null)
+            conn.updateOutputDataInteraction(message, outputCount, outputTimeMillis);
+    }
+
     public String getRunStackTrace() {
         return runStackTrace;
+    }
+
+    public void setRunStackTrace(String runStackTrace) {
+        this.runStackTrace = runStackTrace;
     }
 
     public String getStream() {
         return holder.getStream();
     }
+
+    public StackTraceElement[] getConnectStackTrace() {
+        return connectStackTrace;
+    }
+
+    public void setConnectStackTrace(StackTraceElement[] connectStackTrace) {
+        this.connectStackTrace = connectStackTrace;
+    }
+
+    public long getConnectedTimeNano() {
+        return connectedTimeNano;
+    }
+
+    public void setConnectedTimeNano() {
+        if (connectedTimeNano <= 0) {
+            this.setConnectedTimeNano(System.nanoTime());
+        }
+    }
+
+    public void setConnectedTimeNano(long connectedTimeNano) {
+        this.connectedTimeNano = connectedTimeNano;
+    }
+
+
 }

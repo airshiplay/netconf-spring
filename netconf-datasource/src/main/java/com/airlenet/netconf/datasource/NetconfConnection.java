@@ -1,7 +1,6 @@
 package com.airlenet.netconf.datasource;
 
 import com.airlenet.netconf.datasource.exception.*;
-import com.airlenet.netconf.datasource.util.Utils;
 import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
@@ -16,11 +15,17 @@ public class NetconfConnection implements NetworkConnection {
     private final long sessionId;
     protected final String sessionName;
     protected final SSHSession sshSession;
+    protected long inputTimeMillis;
+    protected long inputCount;
+    protected String inputMessage;
+    protected long outputTimeMillis;
+    protected long outputCount;
+    protected String outputMessage;
     protected volatile boolean abandoned = false;
     protected boolean transaction;
     protected JNCSubscriber jncSubscriber;
     protected String stream;
-
+    NetconfDataSource netconfDataSource;
 
     public NetconfConnection(String sessionName, SSHSession sshSession, NetconfSession netconfSession, JNCSubscriber jncSubscriber) {
         this.netconfSession = netconfSession;
@@ -28,6 +33,17 @@ public class NetconfConnection implements NetworkConnection {
         this.jncSubscriber = jncSubscriber;
         this.sessionName = sessionName;
         this.sshSession = sshSession;
+        this.jncSubscriber.setNetconfConnection(this);
+    }
+
+    public NetconfConnection(NetconfDataSource netconfDataSource, String sessionName, SSHSession sshSession, NetconfSession netconfSession, JNCSubscriber jncSubscriber) {
+        this.netconfDataSource = netconfDataSource;
+        this.netconfSession = netconfSession;
+        this.sessionId = netconfSession.sessionId;
+        this.jncSubscriber = jncSubscriber;
+        this.sessionName = sessionName;
+        this.sshSession = sshSession;
+        this.jncSubscriber.setNetconfConnection(this);
     }
 
     @Override
@@ -41,6 +57,54 @@ public class NetconfConnection implements NetworkConnection {
 
     public String getSessionName() {
         return sessionName;
+    }
+
+    public long getSessionId() {
+        return sessionId;
+    }
+
+    public long getInputTimeMillis() {
+        return inputTimeMillis;
+    }
+
+    public void updateInputDataInteraction(String message, long inputCount, long inputTimeMillis) {
+        this.inputTimeMillis = inputTimeMillis;
+        this.inputMessage = message;
+        this.inputCount = inputCount;
+        if (netconfDataSource != null) {
+            netconfDataSource.inputDataInteractionTimeMillis = inputTimeMillis;
+        }
+    }
+
+    public void setInputDataInteraction(String message, long inputCount, long inputTimeMillis) {
+        this.inputTimeMillis = inputTimeMillis;
+        this.inputMessage = message;
+        this.inputCount = inputCount;
+        if (netconfDataSource != null) {
+            netconfDataSource.inputDataInteractionTimeMillis = inputTimeMillis;
+        }
+    }
+
+    public long getOutputTimeMillis() {
+        return outputTimeMillis;
+    }
+
+    public void updateOutputDataInteraction(String message, long outputCount, long outputTimeMillis) {
+        this.outputTimeMillis = outputTimeMillis;
+        this.outputMessage = message;
+        this.outputCount = outputCount;
+        if (netconfDataSource != null) {
+            netconfDataSource.outputDataInteractionTimeMillis = outputTimeMillis;
+        }
+    }
+
+    public void setOutputDataInteraction(String message, long outputCount, long outputTimeMillis) {
+        this.outputTimeMillis = outputTimeMillis;
+        this.outputMessage = message;
+        this.outputCount = outputCount;
+        if (netconfDataSource != null) {
+            netconfDataSource.outputDataInteractionTimeMillis = outputTimeMillis;
+        }
     }
 
     public boolean isAbandonded() {

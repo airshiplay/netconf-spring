@@ -98,7 +98,8 @@
                     <span style="float: left;">DataSourceStat List </span>
                     <el-input placeholder="请输入" @change="changeInput" v-model="query"
                               style="width: 200px; margin-left: 20px;"></el-input>
-                    <el-button style="float: right; padding: 3px 0" type="text" @click="showJSONAPI($event)" value="datasource.json">
+                    <el-button style="float: right; padding: 3px 0" type="text" @click="showJSONAPI($event)"
+                               value="datasource.json">
                         View JSON API
                     </el-button>
                 </div>
@@ -108,7 +109,8 @@
                         <el-card class="box-card">
                             <div slot="header" class="clearfix">
                                 <span style="float: left;">{{datasource.Name}} </span>
-                                <el-button style="float: right; padding: 3px 0" type="text" :value="'datasource-'+datasource.Identity+'.json'"
+                                <el-button style="float: right; padding: 3px 0" type="text"
+                                           :value="'datasource-'+datasource.Identity+'.json'"
                                            @click="showJSONAPI($event)">View
                                     JSON API
                                 </el-button>
@@ -129,6 +131,8 @@
                                         <div v-if="scope.row.split">
                                             <div v-for="o in scope.row.value.split(':')" :key="o"> {{ o }}</div>
                                         </div>
+                                        <div v-else-if="scope.row.link"><a
+                                                :href="scope.row.value" target="_blank">查看JSON信息</a></div>
                                         <div v-else>{{scope.row.value}}</div>
                                     </template>
                                 </el-table-column>
@@ -153,7 +157,7 @@
             activeIndex: 'datasource.htm',
             visible: false,
             datasourceList: [],
-            originDataSourceList:[],
+            originDataSourceList: [],
             query: ''
         },
         methods: {
@@ -168,38 +172,41 @@
                     .then(function (response) {
                         var content = response.data.Content;
                         that.datasourceList = content
-                        that.originDataSourceList=content
+                        that.originDataSourceList = content
                         for (var i = 0; i < that.datasourceList.length; i++) {
                             var datasource = that.datasourceList[i];
                             datasource.tableData = [{name: '用户名', value: datasource.UserName, desc: '指定建立连接时使用的用户名'},
                                 {name: 'URL', value: datasource.URL, desc: 'Netconf连接字符串'},
                                 {name: '等待次数', value: '', desc: '获取连接时最多等待多少次'},
                                 {name: '等待最大时长', value: '', desc: '获取连接时最多等待多长时间'},
-                                {name: '等待线程数量', value: '', desc: '当前等待获取连接的线程数'},
+                                {name: '等待线程数量', value: datasource.WaitThreadCount, desc: '当前等待获取连接的线程数'},
                                 {name: '最大连接数', value: datasource.MaxPoolSize, desc: '连接池中最大的活跃连接数'},
                                 {name: '池中连接数', value: datasource.ConnectCount, desc: '当前连接池中的数目'},
-                                {name: '活跃连接数', value: '', desc: '当前连接池中活跃连接数'},
-                                {name: '执行数', value: ''}]
+                                {name: '活跃连接数', value: datasource.ActiveConnectionCount, desc: '当前连接池中活跃连接数'},
+                                {name: '最新发送消息时间', value: datasource.OutputDataInteractionTime, desc: '最新发送消息时间'},
+                                {name: '最新接收消息时间', value: datasource.InputDataInteractionTime, desc: '最新接收消息时间'},
+                                {name: '执行数', value: ''},
+                                {name: '连接信息', value: 'connectionInfo-' + datasource.Identity + ".json", link: true}]
                         }
                         console.log(response)
                     }).catch(function (error) {
                     console.log(error);
                 });
             }, showJSONAPI(event) {
-                window.open( event.currentTarget.value, '_blank')
+                window.open(event.currentTarget.value, '_blank')
             }, changeInput: _.debounce(function () { // 输入框筛选
-                var tmp=[]
-                for (var i = 0; i < this.originDataSourceList.length; i++){
+                var tmp = []
+                for (var i = 0; i < this.originDataSourceList.length; i++) {
                     var datasource = this.originDataSourceList[i];
-                    if(datasource.URL.indexOf(this.query)!=-1){
+                    if (datasource.URL.indexOf(this.query) != -1) {
                         tmp.push(datasource)
-                    }else if(datasource.UserName.indexOf(this.query)!=-1){
+                    } else if (datasource.UserName.indexOf(this.query) != -1) {
                         tmp.push(datasource)
-                    }else if((datasource.Identity+"").indexOf(this.query)!=-1){
+                    } else if ((datasource.Identity + "").indexOf(this.query) != -1) {
                         tmp.push(datasource)
                     }
                 }
-                this.datasourceList=tmp
+                this.datasourceList = tmp
 
             }, 300)
         },

@@ -220,7 +220,7 @@ public abstract class ResourceServlet extends HttpServlet {
 
         if ("".equals(path)) {
             if (contextPath.equals("") || contextPath.equals("/")) {
-                response.sendRedirect("/"+servletPath+"/index.htm");
+                response.sendRedirect(servletPath+"/index.htm");
             } else {
                 response.sendRedirect(contextPath+servletPath+"/index.htm");
             }

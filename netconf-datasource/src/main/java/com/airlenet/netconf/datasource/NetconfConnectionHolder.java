@@ -1,7 +1,5 @@
 package com.airlenet.netconf.datasource;
 
-import java.sql.Connection;
-
 public class NetconfConnectionHolder {
     protected long connectionId;
     protected boolean transaction;
@@ -9,6 +7,7 @@ public class NetconfConnectionHolder {
     private long useCount = 0;
     protected final NetconfDataSource dataSource;
     protected String stream;
+
     public NetconfConnectionHolder(NetconfDataSource dataSource, NetconfConnection conn, long connectionId) {
         this.dataSource = dataSource;
         this.conn = conn;
@@ -23,8 +22,43 @@ public class NetconfConnectionHolder {
         return connectionId;
     }
 
+    public String getSessionName() {
+        return conn.getSessionName();
+    }
+
+    public long getSessionId() {
+        return conn.getSessionId();
+    }
+
     public void incrementUseCount() {
         useCount++;
+    }
+
+
+    public long getInputDataInteractionTimeMillis() {
+        return conn.inputTimeMillis;
+    }
+
+
+    public long getInputDataInteractionCount() {
+        return conn.inputCount;
+    }
+
+
+    public long getOutputDataInteractionTimeMillis() {
+        return conn.outputTimeMillis;
+    }
+
+    public String getInputDataInteractionMessage() {
+        return conn.inputMessage;
+    }
+
+    public long getOutputDataInteractionCout() {
+        return conn.outputCount;
+    }
+
+    public String getOutputDataInteractionMessage() {
+        return conn.outputMessage;
     }
 
     @Override
