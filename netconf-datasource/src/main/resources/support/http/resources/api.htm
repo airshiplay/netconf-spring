@@ -18,7 +18,7 @@
 
         .el-header, .el-footer {
             background-color: #fff;
-            color: #333;
+            /*color: #333;*/
             text-align: center;
             /*line-height: 60px;*/
         }
@@ -27,13 +27,6 @@
             position: fixed;
             width: 100%;
             z-index: 999;
-        }
-
-        .el-aside {
-            background-color: #D3DCE6;
-            color: #333;
-            text-align: center;
-            line-height: 200px;
         }
 
         .el-main {
@@ -77,9 +70,7 @@
         .clearfix:after {
             clear: both
         }
-        .el-table thead{
-            display: none;
-        }
+
     </style>
 </head>
 <body>
@@ -87,17 +78,15 @@
     <el-container>
         <el-header>
             <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
-                <el-menu-item index="index.htm">首页</el-menu-item>
-                <el-menu-item index="datasource.htm">数据源</el-menu-item>
-                <el-menu-item index="api.htm">JSON API</el-menu-item>
+                <el-menu-item index="index.htm" >首页</el-menu-item>
+                <el-menu-item index="datasource.htm" >数据源</el-menu-item>
+                <el-menu-item index="api.htm" >JSON API</el-menu-item>
             </el-menu>
         </el-header>
         <el-main>
             <el-card class="box-card">
                 <div slot="header" class="clearfix">
-                    <span style="float: left;">Stat Index </span>
-                    <el-button style="float: right; padding: 3px 0" type="text" @click="showJSONAPI">查看JSON API
-                    </el-button>
+                    <span style="float: left;">JSON API </span>
                 </div>
                 <el-table
                         :data="tableData"
@@ -105,16 +94,14 @@
                     <el-table-column
                             prop="name"
                             label="名称"
-                            width="150">
+                            width="200">
                     </el-table-column>
                     <el-table-column
                             prop="value"
-                            label="值"
+                            label="描述"
                             min-width="180">
                         <template slot-scope="scope">
-                            <div v-if="scope.row.split">
-                                <div v-for="o in scope.row.value.split(':')" :key="o"> {{ o }}</div>
-                            </div>
+                            <div v-if="scope.row.split" ><div  v-for="o in scope.row.value.split('\n')" :key="o"> {{ o }}</div></div>
                             <div v-else>{{scope.row.value}}</div>
                         </template>
                     </el-table-column>
@@ -128,41 +115,27 @@
     new Vue({
         el: '#app',
         data: {
-            activeIndex: 'index.htm',
+            activeIndex: 'api.htm',
             visible: false,
-            tableData: [{name: "版本", value: ''}]
+            tableData:[{name:"basic.json",value:'basic info.'},
+                {name:"datasource.json",value:'DatsSourceStat List'},
+                {name:"datasource-{id}.json",value:'DatasourceStat for id={id},id is DatsSourceStat.ID \n Example: netconfStat/datasource-1.json',split:1},
+                {name:"activeConnectionStackTrace-{datasourceId}.json",value:'StrackTrace for activeConnection in datasource which datasource.id={datasourceId},id is DatsSourceStat.ID\n' +
+                    '\nRequired: set removeAbandoned=true' +
+                    '\nExample: netconfStat/activeConnectionStackTrace-1.json',split:1}]
         },
         methods: {
             show: function () {
                 this.visible = true;
             },
             handleSelect(key, keyPath) {
-                window.open(key, '_self')
-            }, loadData() {
-                let that = this
-                axios.get('basic.json')
-                    .then(function (response) {
-                        var content = response.data.Content;
-                        that.tableData = [{name: "启动时间", value: content.StartTime}, {
-                            name: "版本",
-                            value: content.Version
-                        },
-                            {name: "java版本", value: content.JavaVersion},
-                            {name: "jvm名称", value: content.JavaVMName},
-                            {name: "classpath路径", value: content.JavaClassPath, split: 1},
-                        ]
-                        console.log(response)
-                    }).catch(function (error) {
-                    console.log(error);
-                });
-            }, showJSONAPI() {
-                window.open('basic.json', '_blank')
+                window.open(key,'_self')
+            },loadData(){
+
             }
         },
         mounted() {
-            this.$nextTick(() => {
-                this.loadData();
-            })
+
         }
     })
 </script>

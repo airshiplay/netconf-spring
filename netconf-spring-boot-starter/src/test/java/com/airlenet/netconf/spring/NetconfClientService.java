@@ -14,10 +14,61 @@ public class NetconfClientService {
 
     @PostConstruct
     private void PostConstruct() {
-        try {
-            NodeSet nodeSet = netconfClient.get("netconf://172.19.102.122:2022", "admin", "admin", "sys-info");
-        } catch (NetconfException e) {
-            e.printStackTrace();
-        }
+
+
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    NodeSet nodeSet = netconfClient.get("netconf://172.19.102.122:2022", "admin", "admin", "sys-info");
+                } catch (NetconfException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    NodeSet nodeSet = netconfClient.get("netconf://1.1.1.1:2022", "admin", "admin", "sys-info");
+                } catch (NetconfException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    NodeSet nodeSet = netconfClient.get("netconf://4.4.4.4:2022", "admin", "admin", "sys-info");
+                } catch (NetconfException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    NodeSet nodeSet = netconfClient.get("netconf://2.2.2.2:2022", "admin", "admin", "sys-info");
+                } catch (NetconfException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    NodeSet nodeSet = netconfClient.get("netconf://3.3.3.3:2022", "admin", "admin", "sys-info");
+                } catch (NetconfException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+
+
     }
 }

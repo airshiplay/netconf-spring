@@ -157,7 +157,7 @@ public abstract class ResourceServlet extends HttpServlet {
 
         String text = Utils.readFromResource(filePath);
         if (text == null) {
-            response.sendRedirect(uri + "/index.html");
+            response.sendRedirect(uri + "/index.htm");
             return;
         }
         if (fileName.endsWith(".css")) {
@@ -182,7 +182,7 @@ public abstract class ResourceServlet extends HttpServlet {
         String path = requestURI.substring(contextPath.length() + servletPath.length());
 
         if (!isPermittedRequest(request)) {
-            path = "/nopermit.html";
+            path = "/nopermit.htm";
             returnResourceFile(path, uri, response);
             return;
         }
@@ -202,17 +202,17 @@ public abstract class ResourceServlet extends HttpServlet {
         if (isRequireAuth() //
                 && !ContainsUser(request)//
                 && !checkLoginParam(request)//
-                && !("/login.html".equals(path) //
+                && !("/login.htm".equals(path) //
                 || path.startsWith("/css")//
                 || path.startsWith("/js") //
                 || path.startsWith("/img"))) {
             if (contextPath.equals("") || contextPath.equals("/")) {
-                response.sendRedirect("/druid/login.html");
+                response.sendRedirect("/"+servletPath+"/login.htm");
             } else {
                 if ("".equals(path)) {
-                    response.sendRedirect("druid/login.html");
+                    response.sendRedirect(servletPath+"/login.htm");
                 } else {
-                    response.sendRedirect("login.html");
+                    response.sendRedirect(contextPath+servletPath+"login.htm");
                 }
             }
             return;
@@ -220,15 +220,15 @@ public abstract class ResourceServlet extends HttpServlet {
 
         if ("".equals(path)) {
             if (contextPath.equals("") || contextPath.equals("/")) {
-                response.sendRedirect("/druid/index.html");
+                response.sendRedirect("/"+servletPath+"/index.htm");
             } else {
-                response.sendRedirect("druid/index.html");
+                response.sendRedirect(contextPath+servletPath+"/index.htm");
             }
             return;
         }
 
         if ("/".equals(path)) {
-            response.sendRedirect("index.html");
+            response.sendRedirect("index.htm");
             return;
         }
 

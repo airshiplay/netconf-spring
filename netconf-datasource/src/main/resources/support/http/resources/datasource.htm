@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Netconf Stat Index</title>
+    <!-- import Vue.js -->
+    <script src="//vuejs.org/js/vue.min.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.5.4/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui@2.5.4/lib/index.js"></script>
+    <script src="https://unpkg.com/lodash@4.17.11/lodash.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <style>
+        body {
+            margin: 0px;
+        }
+
+        .el-header, .el-footer {
+            background-color: #fff;
+            color: #333;
+            text-align: center;
+            /*line-height: 60px;*/
+        }
+
+        .el-header {
+            position: fixed;
+            width: 100%;
+            z-index: 999;
+        }
+
+        .el-main {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            margin-top: 60px;
+            /*line-height: 160px;*/
+            /*min-height: 800px;*/
+        }
+
+        body > .el-container {
+            margin-bottom: 40px;
+            display: flex;
+            flex-direction: column
+        }
+
+        .el-container:nth-child(5) .el-aside,
+        .el-container:nth-child(6) .el-aside {
+            line-height: 260px;
+        }
+
+        .el-container:nth-child(7) .el-aside {
+            line-height: 320px;
+        }
+
+        .text {
+            font-size: 14px;
+        }
+
+        .item {
+            margin-bottom: 18px;
+        }
+
+        .clearfix:before,
+        .clearfix:after {
+            display: table;
+            content: "";
+        }
+
+        .clearfix:after {
+            clear: both
+        }
+
+        .el-table thead {
+            display: none;
+        }
+
+        .el-input input {
+            line-height: 30px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-header>
+            <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+                <el-menu-item index="index.htm">首页</el-menu-item>
+                <el-menu-item index="datasource.htm">数据源</el-menu-item>
+                <el-menu-item index="api.htm">JSON API</el-menu-item>
+            </el-menu>
+        </el-header>
+        <el-main>
+            <el-card class="box-card">
+                <div slot="header" class="clearfix" style="text-align: left;">
+                    <span style="float: left;">DataSourceStat List </span>
+                    <el-input placeholder="请输入" @change="changeInput" v-model="query"
+                              style="width: 200px; margin-left: 20px;"></el-input>
+                    <el-button style="float: right; padding: 3px 0" type="text" @click="showJSONAPI($event)" value="datasource.json">
+                        View JSON API
+                    </el-button>
+                </div>
+                <el-row :gutter="10">
+                    <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="8" v-for="datasource in datasourceList"
+                            :key="datasource.Identity" style="padding-bottom: 12px">
+                        <el-card class="box-card">
+                            <div slot="header" class="clearfix">
+                                <span style="float: left;">{{datasource.Name}} </span>
+                                <el-button style="float: right; padding: 3px 0" type="text" :value="'datasource-'+datasource.Identity+'.json'"
+                                           @click="showJSONAPI($event)">View
+                                    JSON API
+                                </el-button>
+                            </div>
+                            <el-table
+                                    :data="datasource.tableData"
+                                    style="width: 100%">
+                                <el-table-column
+                                        prop="name"
+                                        label="名称"
+                                        width="100">
+                                </el-table-column>
+                                <el-table-column
+                                        prop="value"
+                                        label="值"
+                                        min-width="180">
+                                    <template slot-scope="scope">
+                                        <div v-if="scope.row.split">
+                                            <div v-for="o in scope.row.value.split(':')" :key="o"> {{ o }}</div>
+                                        </div>
+                                        <div v-else>{{scope.row.value}}</div>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        prop="desc"
+                                        label="描述"
+                                        min-width="180">
+                                </el-table-column>
+                            </el-table>
+                        </el-card>
+                    </el-col>
+                </el-row>
+            </el-card>
+        </el-main>
+        <el-footer style="line-height:60px">©2019 Airlenet</el-footer>
+    </el-container>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            activeIndex: 'datasource.htm',
+            visible: false,
+            datasourceList: [],
+            originDataSourceList:[],
+            query: ''
+        },
+        methods: {
+            show: function () {
+                this.visible = true;
+            },
+            handleSelect(key, keyPath) {
+                window.open(key, '_self')
+            }, loadData() {
+                let that = this
+                axios.get('datasource.json')
+                    .then(function (response) {
+                        var content = response.data.Content;
+                        that.datasourceList = content
+                        that.originDataSourceList=content
+                        for (var i = 0; i < that.datasourceList.length; i++) {
+                            var datasource = that.datasourceList[i];
+                            datasource.tableData = [{name: '用户名', value: datasource.UserName, desc: '指定建立连接时使用的用户名'},
+                                {name: 'URL', value: datasource.URL, desc: 'Netconf连接字符串'},
+                                {name: '等待次数', value: '', desc: '获取连接时最多等待多少次'},
+                                {name: '等待最大时长', value: '', desc: '获取连接时最多等待多长时间'},
+                                {name: '等待线程数量', value: '', desc: '当前等待获取连接的线程数'},
+                                {name: '最大连接数', value: datasource.MaxPoolSize, desc: '连接池中最大的活跃连接数'},
+                                {name: '池中连接数', value: datasource.ConnectCount, desc: '当前连接池中的数目'},
+                                {name: '活跃连接数', value: '', desc: '当前连接池中活跃连接数'},
+                                {name: '执行数', value: ''}]
+                        }
+                        console.log(response)
+                    }).catch(function (error) {
+                    console.log(error);
+                });
+            }, showJSONAPI(event) {
+                window.open( event.currentTarget.value, '_blank')
+            }, changeInput: _.debounce(function () { // 输入框筛选
+                var tmp=[]
+                for (var i = 0; i < this.originDataSourceList.length; i++){
+                    var datasource = this.originDataSourceList[i];
+                    if(datasource.URL.indexOf(this.query)!=-1){
+                        tmp.push(datasource)
+                    }else if(datasource.UserName.indexOf(this.query)!=-1){
+                        tmp.push(datasource)
+                    }else if((datasource.Identity+"").indexOf(this.query)!=-1){
+                        tmp.push(datasource)
+                    }
+                }
+                this.datasourceList=tmp
+
+            }, 300)
+        },
+        mounted() {
+            this.$nextTick(() => {
+                this.loadData();
+            })
+        }
+    })
+</script>
+</body>
+</html>
