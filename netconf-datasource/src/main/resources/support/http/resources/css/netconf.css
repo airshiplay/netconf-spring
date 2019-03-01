@@ -1,0 +1,68 @@
+body {
+    margin: 0px;
+}
+
+.el-header, .el-footer {
+    background-color: #fff;
+    color: #333;
+    text-align: center;
+    /*line-height: 60px;*/
+}
+
+.el-header {
+    position: fixed;
+    width: 100%;
+    z-index: 999;
+}
+
+.el-aside {
+    background-color: #D3DCE6;
+    color: #333;
+    text-align: center;
+    line-height: 200px;
+}
+
+.el-main {
+    background-color: #E9EEF3;
+    color: #333;
+    text-align: center;
+    margin-top: 60px;
+    /*line-height: 160px;*/
+    /*min-height: 800px;*/
+}
+
+body > .el-container {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column
+}
+
+.el-container:nth-child(5) .el-aside,
+.el-container:nth-child(6) .el-aside {
+    line-height: 260px;
+}
+
+.el-container:nth-child(7) .el-aside {
+    line-height: 320px;
+}
+
+.text {
+    font-size: 14px;
+}
+
+.item {
+    margin-bottom: 18px;
+}
+
+.clearfix:before,
+.clearfix:after {
+    display: table;
+    content: "";
+}
+
+.clearfix:after {
+    clear: both
+}
+.el-table thead{
+    display: none;
+}
