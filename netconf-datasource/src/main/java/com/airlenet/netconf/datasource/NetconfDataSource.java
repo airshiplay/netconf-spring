@@ -16,7 +16,6 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.sql.Connection;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -33,7 +32,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     private long connectCount = 0L;
     private long subscriberConnectCount = 0L;
     private long discardConnectCount = 0L;
-    private long lockConnectTimeoutCount = 0L;
+    private long connectTimeoutFailCount = 0L;
     private Map<String, Long> statSubscriberMap = new LinkedHashMap<>();
     private long statReconnectionCount = 0l;
     private long closeTimeMillis = -1L;
@@ -107,7 +106,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
             discardConnectCount = 0L;
             subscriberConnectCount = 0L;
             statReconnectionCount = 0;
-            lockConnectTimeoutCount = 0L;
+            connectTimeoutFailCount = 0L;
             outputDataInteractionTimeMillis = -1;
             inputDataInteractionTimeMillis = -1;
             connectTimeMillis = -1;
@@ -301,7 +300,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 logger.debug("Fetched Netconf Connection {} from DataSource {}", holder.conn.getSessionName(), this.url);
                 return new NetconfPooledConnection(holder);
             } else {
-                lockConnectTimeoutCount++;
+                connectTimeoutFailCount++;
                 throw new GetNetconfConnectionTimeoutException("Fetching Netconf Connection from DataSource " + this.url + ", Timeout:" + connectionTimeout + ", Lock " + this.lock.toString());
             }
 
@@ -465,9 +464,9 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         dataMap.put("InitedTime", initedTime);
         dataMap.put("MaxPoolSize", this.getMaxPoolSize());
         dataMap.put("Status", this.closed ? "Closed" : (device != null && device.isConnect() ? "Connect" : "DisConnect"));
-        dataMap.put("ConnectTime", new Date(this.connectTimeMillis));
-        dataMap.put("InputDataInteractionTime", new Date(this.inputDataInteractionTimeMillis));
-        dataMap.put("OutputDataInteractionTime", new Date(this.outputDataInteractionTimeMillis));
+        dataMap.put("ConnectTime", this.connectTimeMillis <= 0 ? "" : new Date(this.connectTimeMillis));
+        dataMap.put("InputDataInteractionTime", this.inputDataInteractionTimeMillis <= 0 ? "" : new Date(this.inputDataInteractionTimeMillis));
+        dataMap.put("OutputDataInteractionTime", this.outputDataInteractionTimeMillis <= 0 ? "" : new Date(this.outputDataInteractionTimeMillis));
 
         dataMap.put("WaitThreadCount", this.getWaitThreadCount());
         dataMap.put("ConnectCount", this.connectCount);
@@ -477,7 +476,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         dataMap.put("DiscardConnectionCount", this.discardConnectCount);
         dataMap.put("Subscriber", statSubscriberMap);
 
-        dataMap.put("LockConnectTimeoutCount", lockConnectTimeoutCount);
+        dataMap.put("ConnectTimeoutFailCount", connectTimeoutFailCount);
 
         dataMap.put("AutoReconnection", autoReconnection);
         dataMap.put("ReconnectionCount", this.statReconnectionCount);

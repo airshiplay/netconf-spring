@@ -177,6 +177,8 @@
                             var datasource = that.datasourceList[i];
                             datasource.tableData = [{name: '用户名', value: datasource.UserName, desc: '指定建立连接时使用的用户名'},
                                 {name: 'URL', value: datasource.URL, desc: 'Netconf连接字符串'},
+                                {name: '初始化时间', value: datasource.InitedTime, desc: '数据源初始化时间'},
+                                {name: '连接时间', value: datasource.ConnectTime, desc: '设备连接最新时间'},
                                 {name: '等待次数', value: '', desc: '获取连接时最多等待多少次'},
                                 {name: '等待最大时长', value: '', desc: '获取连接时最多等待多长时间'},
                                 {name: '等待线程数量', value: datasource.WaitThreadCount, desc: '当前等待获取连接的线程数'},
@@ -185,8 +187,8 @@
                                 {name: '活跃连接数', value: datasource.ActiveConnectionCount, desc: '当前连接池中活跃连接数'},
                                 {name: '最新发送消息时间', value: datasource.OutputDataInteractionTime, desc: '最新发送消息时间'},
                                 {name: '最新接收消息时间', value: datasource.InputDataInteractionTime, desc: '最新接收消息时间'},
-                                {name: '执行数', value: ''},
-                                {name: '连接信息', value: 'connectionInfo-' + datasource.Identity + ".json", link: true}]
+                                {name: '再次连接设备次数', value: datasource.ReconnectionCount},
+                                {name: '池中连接信息', value: 'connectionInfo-' + datasource.Identity + ".json", link: true}]
                         }
                         console.log(response)
                     }).catch(function (error) {
