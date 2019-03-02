@@ -261,6 +261,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                             netconfConnection = new NetconfConnection(this, sessionName, sshSession, netconfSession, jncSubscriber);
 
                             holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
+                            holder.connectTime =System.currentTimeMillis();
                             holders.add(holder);
                             connectCount++;
                             break;
@@ -450,42 +451,6 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     public boolean isMbeanRegistered() {
         return mbeanRegistered;
     }
-
-
-    public Map<String, Object> getStatData() {
-        Map<String, Object> dataMap = new LinkedHashMap<String, Object>();
-        dataMap.put("Identity", System.identityHashCode(this));
-        dataMap.put("Name", this.getName());
-        dataMap.put("URL", this.getUrl());
-        dataMap.put("UserName", this.getUsername());
-        if (this.getTimeZone() != null) {
-            dataMap.put("TimeZone", this.getTimeZone());
-        }
-        dataMap.put("InitedTime", initedTime);
-        dataMap.put("MaxPoolSize", this.getMaxPoolSize());
-        dataMap.put("Status", this.closed ? "Closed" : (device != null && device.isConnect() ? "Connect" : "DisConnect"));
-        dataMap.put("ConnectTime", this.connectTimeMillis <= 0 ? "" : new Date(this.connectTimeMillis));
-        
-        dataMap.put("WaitThreadCount", this.getWaitThreadCount());
-        dataMap.put("FetchConnectionStackTrace", fetchConnectionStackTrace);
-
-        dataMap.put("InputDataInteractionTime", this.inputDataInteractionTimeMillis <= 0 ? "" : new Date(this.inputDataInteractionTimeMillis));
-        dataMap.put("OutputDataInteractionTime", this.outputDataInteractionTimeMillis <= 0 ? "" : new Date(this.outputDataInteractionTimeMillis));
-
-        dataMap.put("ConnectCount", this.connectCount);
-        dataMap.put("SubscriberConnectCount", this.subscriberConnectCount);
-        dataMap.put("IdleConnectionCount", connectionQueue.size());
-        dataMap.put("ActiveConnectionCount", activeConnections.size());
-        dataMap.put("DiscardConnectionCount", this.discardConnectCount);
-        dataMap.put("Subscriber", statSubscriberMap);
-
-        dataMap.put("ConnectTimeoutFailCount", connectTimeoutFailCount);
-
-        dataMap.put("AutoReconnection", autoReconnection);
-        dataMap.put("ReconnectionCount", this.statReconnectionCount);
-        return dataMap;
-    }
-
     @Override
     public ObjectName preRegister(MBeanServer server, ObjectName name) throws Exception {
         if (server != null) {
@@ -527,6 +492,40 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         return lock.getQueueLength();
     }
 
+    public Map<String, Object> getStatData() {
+        Map<String, Object> dataMap = new LinkedHashMap<String, Object>();
+        dataMap.put("Identity", System.identityHashCode(this));
+        dataMap.put("Name", this.getName());
+        dataMap.put("URL", this.getUrl());
+        dataMap.put("UserName", this.getUsername());
+        if (this.getTimeZone() != null) {
+            dataMap.put("TimeZone", this.getTimeZone());
+        }
+        dataMap.put("InitedTime", initedTime);
+        dataMap.put("MaxPoolSize", this.getMaxPoolSize());
+        dataMap.put("Status", this.closed ? "Closed" : (device != null && device.isConnect() ? "Connect" : "DisConnect"));
+        dataMap.put("ConnectTime", this.connectTimeMillis <= 0 ? "" : new Date(this.connectTimeMillis));
+        
+        dataMap.put("WaitThreadCount", this.getWaitThreadCount());
+        dataMap.put("FetchConnectionStackTrace", fetchConnectionStackTrace);
+
+        dataMap.put("InputDataInteractionTime", this.inputDataInteractionTimeMillis <= 0 ? "" : new Date(this.inputDataInteractionTimeMillis));
+        dataMap.put("OutputDataInteractionTime", this.outputDataInteractionTimeMillis <= 0 ? "" : new Date(this.outputDataInteractionTimeMillis));
+
+        dataMap.put("ConnectCount", this.connectCount);
+        dataMap.put("SubscriberConnectCount", this.subscriberConnectCount);
+        dataMap.put("IdleConnectionCount", connectionQueue.size());
+        dataMap.put("ActiveConnectionCount", activeConnections.size());
+        dataMap.put("DiscardConnectionCount", this.discardConnectCount);
+        dataMap.put("Subscriber", statSubscriberMap);
+
+        dataMap.put("ConnectTimeoutFailCount", connectTimeoutFailCount);
+
+        dataMap.put("AutoReconnection", autoReconnection);
+        dataMap.put("ReconnectionCount", this.statReconnectionCount);
+        return dataMap;
+    }
+
     public List<Map<String, Object>> getPoolingConnectionInfo() {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         lock.lock();
@@ -537,6 +536,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 Map<String, Object> map = new LinkedHashMap<String, Object>();
                 map.put("id", System.identityHashCode(conn));
                 map.put("connectionId", connHolder.getConnectionId());
+                map.put("connectTime",new Date(connHolder.connectTime));
                 map.put("sessionId", connHolder.getSessionId());
                 map.put("sessionName", connHolder.getSessionName());
                 map.put("stream", connHolder.getStream());

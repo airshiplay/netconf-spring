@@ -7,6 +7,7 @@ public class NetconfConnectionHolder {
     private long useCount = 0;
     protected final NetconfDataSource dataSource;
     protected String stream;
+    protected long connectTime;
 
     public NetconfConnectionHolder(NetconfDataSource dataSource, NetconfConnection conn, long connectionId) {
         this.dataSource = dataSource;

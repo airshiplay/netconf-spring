@@ -188,9 +188,9 @@
                                 {name: '最新发送消息时间', value: datasource.OutputDataInteractionTime, desc: '最新发送消息时间'},
                                 {name: '最新接收消息时间', value: datasource.InputDataInteractionTime, desc: '最新接收消息时间'},
                                 {name: '再次连接设备次数', value: datasource.ReconnectionCount},
-                                {name: '池中连接信息', value: 'connectionInfo-' + datasource.Identity + ".json", link: true}]
+                                {name: '活跃连接堆栈查看', value: 'activeConnectionStackTrace-' + datasource.Identity + ".json", link: true, desc: 'StackTrace for active Connection.'},
+                                {name: '连接池中连接信息', value: 'connectionInfo-' + datasource.Identity + ".json", link: true, desc: 'Info for polling connection.'}]
                         }
-                        console.log(response)
                     }).catch(function (error) {
                     console.log(error);
                 });
