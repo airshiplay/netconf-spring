@@ -234,6 +234,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                             NetconfConnection netconfConnection = null;
 
                             JNCSubscriber jncSubscriber = new JNCSubscriber(url, sessionName, subscriber);
+                            long sessionTimeMillis= System.currentTimeMillis();
                             try {
                                 device.newSession(jncSubscriber, sessionName);
                             } catch (Exception e) {//断链，重新连接  将所有连接重置，并重新建联
@@ -261,7 +262,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                             netconfConnection = new NetconfConnection(this, sessionName, sshSession, netconfSession, jncSubscriber);
 
                             holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
-                            holder.connectTime =System.currentTimeMillis();
+                            holder.connectTimeMillis =sessionTimeMillis;
                             holders.add(holder);
                             connectCount++;
                             break;
@@ -536,7 +537,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 Map<String, Object> map = new LinkedHashMap<String, Object>();
                 map.put("id", System.identityHashCode(conn));
                 map.put("connectionId", connHolder.getConnectionId());
-                map.put("connectTime",new Date(connHolder.connectTime));
+                map.put("connectTime",new Date(connHolder.connectTimeMillis));
                 map.put("sessionId", connHolder.getSessionId());
                 map.put("sessionName", connHolder.getSessionName());
                 map.put("stream", connHolder.getStream());
