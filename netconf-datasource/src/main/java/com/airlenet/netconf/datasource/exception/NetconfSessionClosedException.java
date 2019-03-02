@@ -2,8 +2,8 @@ package com.airlenet.netconf.datasource.exception;
 
 import com.airlenet.netconf.datasource.NetconfException;
 
-public class NetconfConnectClosedException extends NetconfConnectException {
-    public NetconfConnectClosedException(Throwable cause) {
+public class NetconfSessionClosedException extends NetconfException {
+    public NetconfSessionClosedException(Throwable cause) {
         super(cause);
     }
 }

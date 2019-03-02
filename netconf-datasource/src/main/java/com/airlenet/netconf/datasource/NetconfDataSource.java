@@ -28,7 +28,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     public final static int DEFAULT_MAX_POOL_SIZE = 8;
     public final static int DEFAULT_CONNECTION_TIMEOUT = 0;
     private String initStackTrace;
-    private String lockStackTrace;
+    private String fetchConnectionStackTrace;
     private long connectCount = 0L;
     private long subscriberConnectCount = 0L;
     private long discardConnectCount = 0L;
@@ -218,7 +218,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
             boolean tryLock = lock.tryLock(connectionTimeout, TimeUnit.MILLISECONDS);
             if (tryLock) {
                 try {
-                    lockStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+                    fetchConnectionStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
 
                     if (connectionQueue.isEmpty() && connectCount < maxPoolSize) {
 
@@ -278,7 +278,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 } catch (JNCException e) {
                     throw new NetconfJNCException(e);
                 } finally {
-                    lockStackTrace = "";
+                    fetchConnectionStackTrace = "";
                     lock.unlock();
                 }
                 //获取连接
@@ -465,10 +465,13 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         dataMap.put("MaxPoolSize", this.getMaxPoolSize());
         dataMap.put("Status", this.closed ? "Closed" : (device != null && device.isConnect() ? "Connect" : "DisConnect"));
         dataMap.put("ConnectTime", this.connectTimeMillis <= 0 ? "" : new Date(this.connectTimeMillis));
+        
+        dataMap.put("WaitThreadCount", this.getWaitThreadCount());
+        dataMap.put("FetchConnectionStackTrace", fetchConnectionStackTrace);
+
         dataMap.put("InputDataInteractionTime", this.inputDataInteractionTimeMillis <= 0 ? "" : new Date(this.inputDataInteractionTimeMillis));
         dataMap.put("OutputDataInteractionTime", this.outputDataInteractionTimeMillis <= 0 ? "" : new Date(this.outputDataInteractionTimeMillis));
 
-        dataMap.put("WaitThreadCount", this.getWaitThreadCount());
         dataMap.put("ConnectCount", this.connectCount);
         dataMap.put("SubscriberConnectCount", this.subscriberConnectCount);
         dataMap.put("IdleConnectionCount", connectionQueue.size());

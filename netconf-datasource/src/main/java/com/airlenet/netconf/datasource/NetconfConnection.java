@@ -266,7 +266,7 @@ public class NetconfConnection implements NetworkConnection {
         }
         if (e instanceof SessionClosedException) {
             abandoned = true;
-            return new NetconfConnectClosedException(e);
+            return new NetconfSessionClosedException(e);
         }
         if (e instanceof ConnectException) {
             return new NetconfConnectException(e);
@@ -292,6 +292,10 @@ public class NetconfConnection implements NetworkConnection {
                 return new NetconfJNCTimeOutException(e);
             } else if (e.toString().startsWith("Authentication failed")) {
                 return new NetconfAuthException(e);
+            } else if (e.toString().contains("A subscription is already active for this session")) {
+                return new NetconfSuscribedException(e);
+            } else if (e.toString().contains("Message ID mismatch")) {
+                return new NetconfSessionMessageMismatchException(e);
             }
             return new NetconfJNCException(e);
         }

@@ -48,7 +48,7 @@ public class NetconfDataSourceTest {
                 logger.debug(url + msg);
             }
         });
-        connection.subscription(null);
+        connection.subscription("alarm",null,"2019-02-01T06:23:18.798884+00:00");
         new Thread() {
             @Override
             public void run() {
@@ -66,6 +66,6 @@ public class NetconfDataSourceTest {
             }
         }.start();
 
-//        Thread.sleep(60 * 60 * 1000);
+        Thread.sleep(60 * 60 * 1000);
     }
 }
