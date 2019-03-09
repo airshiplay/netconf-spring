@@ -24,12 +24,12 @@ public interface NetconfClient {
 
     public NodeSet getConfig(NetconfDevice netconfDevice, Element subtreeFilter) throws NetconfException;
 
-    public NodeSet editConfig(String url, String username, String password, Element configTree) throws NetconfException;
+    public void editConfig(String url, String username, String password, Element configTree) throws NetconfException;
 
-    public NodeSet editConfig(NetconfDevice netconfDevice, Element configTree) throws NetconfException;
+    public void editConfig(NetconfDevice netconfDevice, Element configTree) throws NetconfException;
 
-//    public NetconfPooledConnection getConnection(String url, String username, String password) throws NetconfException;
-//
-//    public NetconfPooledConnection getConnection(NetconfDevice netconfDevice) throws NetconfException;
+    public NetconfPooledConnection getConnection(String url, String username, String password) throws NetconfException;
+
+    public NetconfPooledConnection getConnection(NetconfDevice netconfDevice) throws NetconfException;
 
 }

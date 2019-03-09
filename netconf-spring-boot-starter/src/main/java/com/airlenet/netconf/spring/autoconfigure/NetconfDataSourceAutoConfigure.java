@@ -2,6 +2,7 @@ package com.airlenet.netconf.spring.autoconfigure;
 
 import com.airlenet.netconf.datasource.MultiNetconfDataSource;
 import com.airlenet.netconf.datasource.NetconfDataSource;
+import com.airlenet.netconf.spring.DefaultNetconfClient;
 import com.airlenet.netconf.spring.NetconfClient;
 import com.airlenet.netconf.spring.NetconfClientInvocationHandler;
 import com.airlenet.netconf.spring.autoconfigure.stat.NetconfSpringAopConfiguration;
@@ -39,14 +40,19 @@ public class NetconfDataSourceAutoConfigure {
         return multiDataSource;
     }
 
-    @Bean
-    public NetconfClientInvocationHandler netconfClientInvocationHandler() {
-        return new NetconfClientInvocationHandler(multiNetconfDataSource(), netconfProperties);
-    }
+//    @Bean
+//    public NetconfClientInvocationHandler netconfClientInvocationHandler() {
+//        return new NetconfClientInvocationHandler(multiNetconfDataSource(), netconfProperties);
+//    }
 
     @Bean
     @ConditionalOnMissingBean
     public NetconfClient netconfClient() {
-        return (NetconfClient) Proxy.newProxyInstance(NetconfClient.class.getClassLoader(), new Class[]{NetconfClient.class}, netconfClientInvocationHandler());
+        return new DefaultNetconfClient(multiNetconfDataSource());
     }
+//    @Bean
+//    @ConditionalOnMissingBean
+//    public NetconfClient netconfClient() {
+//        return (NetconfClient) Proxy.newProxyInstance(NetconfClient.class.getClassLoader(), new Class[]{NetconfClient.class}, netconfClientInvocationHandler());
+//    }
 }

@@ -21,22 +21,22 @@ public class MultiNetconfDataSource extends NetconfDataSource implements MultiNe
     }
 
     @Override
-    public final NetconfPooledConnection getConnection() throws NetworkException {
+    public final NetconfPooledConnection getConnection() throws NetconfException {
         throw new IllegalArgumentException("");
     }
 
     @Override
-    public final NetconfPooledConnection getConnection(String username, String password) throws NetworkException {
+    public final NetconfPooledConnection getConnection(String username, String password) throws NetconfException {
         throw new IllegalArgumentException("");
     }
 
     //    @Override
-    private final NetconfPooledConnection getConnectionDirect(long maxWaitMillis) throws NetworkException {
+    private final NetconfPooledConnection getConnectionDirect(long maxWaitMillis) throws NetconfException {
         throw new IllegalArgumentException("");
     }
 
     @Override
-    public NetconfDataSource getDataSource(String url, String username, String password) throws NetworkException {
+    public NetconfDataSource getDataSource(String url, String username, String password) throws NetconfException {
         synchronized (dataSourceObjectMap) {
             NetconfDataSource netconfDataSource = dataSourceObjectMap.get(url);
             if (netconfDataSource == null) {
@@ -53,13 +53,13 @@ public class MultiNetconfDataSource extends NetconfDataSource implements MultiNe
     }
 
     @Override
-    public NetconfPooledConnection getConnection(String url, String username, String password) throws NetworkException {
+    public NetconfPooledConnection getConnection(String url, String username, String password) throws NetconfException {
         NetconfDataSource dataSource = getDataSource(url, username, password);
         return dataSource.getConnection();
     }
 
     @Override
-    public void removeDataSource(String url) throws NetworkException {
+    public void removeDataSource(String url) throws NetconfException {
         synchronized (dataSourceObjectMap) {
             NetconfDataSource netconfDataSource = dataSourceObjectMap.get(url);
             if (netconfDataSource != null) {
@@ -69,12 +69,12 @@ public class MultiNetconfDataSource extends NetconfDataSource implements MultiNe
     }
 
     @Override
-    public void addDataSource(String url, String username, String password) throws NetworkException {
+    public void addDataSource(String url, String username, String password) throws NetconfException {
         getDataSource(url, username, password);
     }
 
     @Override
-    public void removeDataSource(NetworkDataSource dataSource) throws NetworkException {
+    public void removeDataSource(NetworkDataSource dataSource) throws NetconfException {
         if (dataSource instanceof NetconfDataSource) {
             NetconfDataSource originalNetconfDataSource = (NetconfDataSource) dataSource;
             synchronized (dataSourceObjectMap) {
@@ -87,7 +87,7 @@ public class MultiNetconfDataSource extends NetconfDataSource implements MultiNe
     }
 
     @Override
-    public void addDataSource(NetworkDataSource dataSource) throws NetworkException {
+    public void addDataSource(NetworkDataSource dataSource) throws NetconfException {
         if (dataSource instanceof NetconfDataSource) {
             NetconfDataSource originalNetconfDataSource = (NetconfDataSource) dataSource;
             synchronized (dataSourceObjectMap) {

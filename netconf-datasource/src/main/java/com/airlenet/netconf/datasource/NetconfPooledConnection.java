@@ -6,10 +6,11 @@ import com.airlenet.network.NetworkPooledConnection;
 import com.tailf.jnc.Element;
 import com.tailf.jnc.NodeSet;
 
+import java.io.Closeable;
 import java.util.TimeZone;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class NetconfPooledConnection extends NetconfConnection implements NetworkPooledConnection, NetworkConnection {
+public class NetconfPooledConnection extends NetconfConnection implements NetworkPooledConnection, NetworkConnection,AutoCloseable {
 
     public ReentrantLock lock = new ReentrantLock();
     protected final Thread ownerThread;
@@ -71,7 +72,7 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         if (this.disable) {
             return;
         }
-        if (abandoned) {//废弃此链接
+        if (conn.abandoned) {//废弃此链接
             holder.dataSource.discardConnection(this);
         } else {//回收链接
             holder.dataSource.recycle(this);

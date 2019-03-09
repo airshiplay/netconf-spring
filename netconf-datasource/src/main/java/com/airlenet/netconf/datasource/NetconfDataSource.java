@@ -74,16 +74,16 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     }
 
     @Override
-    public NetconfPooledConnection getConnection() throws NetworkException {
+    public NetconfPooledConnection getConnection() throws NetconfException {
         return this.getConnection(this.connectionTimeout, null);
     }
 
-    public NetconfPooledConnection getConnection(NetconfSubscriber subscriber) throws NetworkException {
+    public NetconfPooledConnection getConnection(NetconfSubscriber subscriber) throws NetconfException {
         return this.getConnection(this.connectionTimeout, subscriber);
     }
 
     @Override
-    public NetconfPooledConnection getConnection(String username, String password) throws NetworkException {
+    public NetconfPooledConnection getConnection(String username, String password) throws NetconfException {
         return getConnection();
     }
 
@@ -139,12 +139,12 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         }
     }
 
-    private NetconfPooledConnection getConnection(long connectionTimeout, NetconfSubscriber subscriber) throws NetworkException {
+    private NetconfPooledConnection getConnection(long connectionTimeout, NetconfSubscriber subscriber) throws NetconfException {
         this.init();
         return this.getConnectionDirect(connectionTimeout, subscriber);
     }
 
-    public void init() throws NetworkException {
+    public void init() throws NetconfException {
         if (inited) {
             return;
         }
@@ -153,7 +153,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         try {
             lock.lockInterruptibly();
         } catch (InterruptedException e) {
-            throw new NetworkException("interrupt", e);
+            throw new NetconfException("interrupt", e);
         }
 
         try {
@@ -187,7 +187,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         }
     }
 
-    public NetconfPooledConnection getConnectionDirect(long connectionTimeoutMillis, NetconfSubscriber subscriber) throws NetworkException {
+    public NetconfPooledConnection getConnectionDirect(long connectionTimeoutMillis, NetconfSubscriber subscriber) throws NetconfException {
         NetconfPooledConnection pooledConnection = getConnectionInternal(connectionTimeoutMillis, subscriber);
 
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
@@ -203,7 +203,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     }
 
 
-    private NetconfPooledConnection getConnectionInternal(long connectionTimeout, NetconfSubscriber subscriber) throws NetworkException {
+    private NetconfPooledConnection getConnectionInternal(long connectionTimeout, NetconfSubscriber subscriber) throws NetconfException {
         if (closed) {
             throw new NetconfDataSourceClosedException("dataSource already closed at " + new Date(closeTimeMillis));
         }
@@ -296,7 +296,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                         throw new IllegalStateException("NetconfDataSource returned null from getConnection(): " + this);
                     }
                 } catch (InterruptedException e) {
-                    throw new NetworkException(e);
+                    throw new NetconfException(e);
                 }
                 holder.incrementUseCount();
                 logger.debug("Fetched Netconf Connection {} from DataSource {}", holder.conn.getSessionName(), this.url);
