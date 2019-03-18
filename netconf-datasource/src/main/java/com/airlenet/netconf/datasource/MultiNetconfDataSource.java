@@ -1,10 +1,10 @@
 package com.airlenet.netconf.datasource;
 
-import com.airlenet.network.NetworkDataSource;
-import com.airlenet.network.NetworkException;
 import com.airlenet.network.MultiNetworkDataSource;
+import com.airlenet.network.NetworkDataSource;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class MultiNetconfDataSource extends NetconfDataSource implements MultiNetworkDataSource {

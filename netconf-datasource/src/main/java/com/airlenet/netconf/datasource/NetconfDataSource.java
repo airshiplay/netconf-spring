@@ -3,7 +3,6 @@ package com.airlenet.netconf.datasource;
 import com.airlenet.netconf.datasource.exception.*;
 import com.airlenet.netconf.datasource.stat.NetconfDataSourceStatManager;
 import com.airlenet.netconf.datasource.util.Utils;
-import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -234,7 +233,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                             NetconfConnection netconfConnection = null;
 
                             JNCSubscriber jncSubscriber = new JNCSubscriber(url, sessionName, subscriber);
-                            long sessionTimeMillis= System.currentTimeMillis();
+                            long sessionTimeMillis = System.currentTimeMillis();
                             try {
                                 device.newSession(jncSubscriber, sessionName);
                             } catch (Exception e) {//断链，重新连接  将所有连接重置，并重新建联
@@ -262,7 +261,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                             netconfConnection = new NetconfConnection(this, sessionName, sshSession, netconfSession, jncSubscriber);
 
                             holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
-                            holder.connectTimeMillis =sessionTimeMillis;
+                            holder.connectTimeMillis = sessionTimeMillis;
                             holders.add(holder);
                             connectCount++;
                             break;
@@ -319,22 +318,25 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
      * @param realConnection
      */
     public void discardConnection(NetconfPooledConnection realConnection) {
-        lock.lock();
-        connectCount--;
-        discardConnectCount++;
-        if (realConnection.getStream() != null) {
-            subscriberConnectCount--;
-        }
-        holders.remove(realConnection.holder);
-        activeConnectionLock.lock();
         try {
-            activeConnections.remove(realConnection);
+            lock.lock();
+            connectCount--;
+            discardConnectCount++;
+            if (realConnection.getStream() != null) {
+                subscriberConnectCount--;
+            }
+            holders.remove(realConnection.holder);
+            activeConnectionLock.lock();
+            try {
+                activeConnections.remove(realConnection);
+            } finally {
+                activeConnectionLock.unlock();
+            }
+            logger.debug("Discard Netconf Connection {} to DataSource {}", realConnection.getSessionName(), this.url);
+            device.closeSession(realConnection.sessionName);
         } finally {
-            activeConnectionLock.unlock();
+            lock.unlock();
         }
-        logger.debug("Discard Netconf Connection {} to DataSource {}", realConnection.getSessionName(), this.url);
-        device.closeSession(realConnection.sessionName);
-        lock.unlock();
     }
 
     /**
@@ -452,6 +454,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     public boolean isMbeanRegistered() {
         return mbeanRegistered;
     }
+
     @Override
     public ObjectName preRegister(MBeanServer server, ObjectName name) throws Exception {
         if (server != null) {
@@ -506,7 +509,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         dataMap.put("MaxPoolSize", this.getMaxPoolSize());
         dataMap.put("Status", this.closed ? "Closed" : (device != null && device.isConnect() ? "Connect" : "DisConnect"));
         dataMap.put("ConnectTime", this.connectTimeMillis <= 0 ? "" : new Date(this.connectTimeMillis));
-        
+
         dataMap.put("WaitThreadCount", this.getWaitThreadCount());
         dataMap.put("FetchConnectionStackTrace", fetchConnectionStackTrace);
 
@@ -537,7 +540,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                 Map<String, Object> map = new LinkedHashMap<String, Object>();
                 map.put("id", System.identityHashCode(conn));
                 map.put("connectionId", connHolder.getConnectionId());
-                map.put("connectTime",new Date(connHolder.connectTimeMillis));
+                map.put("connectTime", new Date(connHolder.connectTimeMillis));
                 map.put("sessionId", connHolder.getSessionId());
                 map.put("sessionName", connHolder.getSessionName());
                 map.put("stream", connHolder.getStream());
