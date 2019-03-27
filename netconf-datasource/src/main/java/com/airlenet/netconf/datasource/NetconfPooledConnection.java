@@ -159,8 +159,8 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         this.stream = stream;
         holder.setStream(stream);
         this.receiveSubscriberCount = 0;
-        holder.dataSource.updateSubscriberCount(conn.stream);
-        holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+        holder.dataSource.updateSubscriberCount(stream);
+        holder.dataSource.updateNotificationCount(stream, this.receiveSubscriberCount);
         conn.subscription(stream);
     }
 
@@ -170,8 +170,8 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         this.stream = stream;
         holder.setStream(stream);
         this.receiveSubscriberCount = 0;
-        holder.dataSource.updateSubscriberCount(conn.stream);
-        holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+        holder.dataSource.updateSubscriberCount(stream);
+        holder.dataSource.updateNotificationCount(stream, this.receiveSubscriberCount);
         conn.subscription(stream, eventFilter, startTime);
     }
 
@@ -181,8 +181,8 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         this.stream = stream;
         holder.setStream(stream);
         this.receiveSubscriberCount = 0;
-        holder.dataSource.updateSubscriberCount(conn.stream);
-        holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+        holder.dataSource.updateSubscriberCount(stream);
+        holder.dataSource.updateNotificationCount(stream, this.receiveSubscriberCount);
         conn.subscription(stream, eventFilter, startTime, stopTime);
     }
 
