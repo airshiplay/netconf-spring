@@ -157,33 +157,33 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
     public void subscription(String stream) throws NetconfException {
         runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         this.stream = stream;
-        conn.subscription(stream);
         holder.setStream(stream);
         this.receiveSubscriberCount = 0;
         holder.dataSource.updateSubscriberCount(conn.stream);
         holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+        conn.subscription(stream);
     }
 
     @Override
     public void subscription(String stream, String eventFilter, String startTime) throws NetconfException {
         runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         this.stream = stream;
-        conn.subscription(stream, eventFilter, startTime);
-        this.receiveSubscriberCount = 0;
         holder.setStream(stream);
+        this.receiveSubscriberCount = 0;
         holder.dataSource.updateSubscriberCount(conn.stream);
         holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+        conn.subscription(stream, eventFilter, startTime);
     }
 
     @Override
     public void subscription(String stream, String eventFilter, String startTime, String stopTime) throws NetconfException {
         runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         this.stream = stream;
-        conn.subscription(stream, eventFilter, startTime, stopTime);
         holder.setStream(stream);
         this.receiveSubscriberCount = 0;
         holder.dataSource.updateSubscriberCount(conn.stream);
         holder.dataSource.updateNotificationCount(conn.stream, this.receiveSubscriberCount);
+        conn.subscription(stream, eventFilter, startTime, stopTime);
     }
 
     @Override
