@@ -296,6 +296,12 @@ public class NetconfConnection implements NetworkConnection {
                 return new NetconfSuscribedException(e);
             } else if (e.toString().contains("Message ID mismatch")) {
                 return new NetconfSessionMessageMismatchException(e);
+            } else if (e.toString().contains("Element does not exists")) {
+                return new NetconfJNCElementMissingException(e);
+            } else if (e.toString().startsWith("Parse error")) {
+                return new NetconfJNCParseException(e);
+            } else if (e.toString().startsWith("Session error:")) {
+                return new NetconfJNCSessionException(e);
             }
             return new NetconfJNCException(e);
         }
