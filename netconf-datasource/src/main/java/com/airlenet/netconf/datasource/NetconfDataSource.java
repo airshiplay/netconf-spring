@@ -2,6 +2,7 @@ package com.airlenet.netconf.datasource;
 
 import com.airlenet.netconf.datasource.exception.*;
 import com.airlenet.netconf.datasource.stat.NetconfDataSourceStatManager;
+import com.airlenet.netconf.datasource.util.StringUtils;
 import com.airlenet.netconf.datasource.util.Utils;
 import com.tailf.jnc.*;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
     protected volatile long kexTimeout = DEFAULT_CONNECTION_TIMEOUT;
     protected volatile int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
     protected volatile boolean autoReconnection = true;
-    protected volatile boolean inited;
+
 
     private volatile boolean closing = false;
     private volatile boolean closed = false;
@@ -83,7 +84,17 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
 
     @Override
     public NetconfPooledConnection getConnection(String username, String password) throws NetconfException {
-        return getConnection();
+        if (this.username == null && this.password == null && username != null && password != null) {
+            this.username = username;
+            this.password = password;
+            return this.getConnection();
+        } else if (!StringUtils.equals(username, this.username)) {
+            throw new UnsupportedOperationException("Not supported by NetconfDataSource");
+        } else if (!StringUtils.equals(password, this.password)) {
+            throw new UnsupportedOperationException("Not supported by NetconfDataSource");
+        } else {
+            return this.getConnection();
+        }
     }
 
     @Override
