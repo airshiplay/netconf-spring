@@ -1,6 +1,7 @@
 package com.airlenet.netconf.datasource;
 
 import com.airlenet.netconf.datasource.exception.*;
+import com.airlenet.netconf.datasource.util.Utils;
 import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
@@ -137,6 +138,70 @@ public class NetconfConnection implements NetworkConnection {
     public void commit() throws NetconfException {
         try {
             netconfSession.commit();//now commit them 确认提交
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public NodeSet callRpc(Element data) throws NetconfException {
+        try {
+            return netconfSession.callRpc(data);
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public Element rpc(String request) throws NetconfException {
+        try {
+            return netconfSession.rpc(request);
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public Element rpc(Element request) throws NetconfException {
+        try {
+            return netconfSession.rpc(request);
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public int sendRequest(String request) throws NetconfException {
+        try {
+            return netconfSession.sendRequest(request);
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public int sendRequest(Element request) throws NetconfException {
+        try {
+            return netconfSession.sendRequest(request);
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public int sendRpc(Element data) throws NetconfException {
+        try {
+            return netconfSession.sendRpc(data);
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public void validate(Element configTree) throws NetconfException {
+        try {
+            netconfSession.validate(configTree);
+        } catch (Exception e) {
+            throw getCauseException(e);
+        }
+    }
+
+    public Element action(Element data) throws NetconfException {
+        try {
+            return netconfSession.action(data);
         } catch (Exception e) {
             throw getCauseException(e);
         }

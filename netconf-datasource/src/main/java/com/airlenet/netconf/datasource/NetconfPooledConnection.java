@@ -83,12 +83,12 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
     }
 
     public void discard() throws NetconfException {
-        conn.abandoned=true;
+        conn.abandoned = true;
         close();
     }
 
     public void discardConnection() throws NetconfException {
-        conn.abandoned=true;
+        conn.abandoned = true;
         close();
     }
 
@@ -121,6 +121,54 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         } else {
             return "closed-conn-" + System.identityHashCode(this);
         }
+    }
+
+    @Override
+    public NodeSet callRpc(Element data) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        return conn.callRpc(data);
+    }
+
+    @Override
+    public Element rpc(String request) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        return conn.rpc(request);
+    }
+
+    @Override
+    public Element rpc(Element request) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        return conn.rpc(request);
+    }
+
+    @Override
+    public int sendRequest(String request) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        return conn.sendRequest(request);
+    }
+
+    @Override
+    public int sendRequest(Element request) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        return conn.sendRequest(request);
+    }
+
+    @Override
+    public int sendRpc(Element data) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        return conn.sendRpc(data);
+    }
+
+    @Override
+    public void validate(Element configTree) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        conn.validate(configTree);
+    }
+
+    @Override
+    public Element action(Element data) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        return conn.action(data);
     }
 
     @Override

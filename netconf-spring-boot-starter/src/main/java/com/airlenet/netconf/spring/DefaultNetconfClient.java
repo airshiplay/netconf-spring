@@ -99,4 +99,116 @@ public class DefaultNetconfClient implements NetconfClient {
     public NetconfPooledConnection getConnection(NetconfDevice netconfDevice) throws NetconfException {
         return multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword());
     }
+
+    @Override
+    public NodeSet callRpc(NetconfDevice netconfDevice, Element data) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            return connection.callRpc(data);
+        }
+    }
+
+    @Override
+    public NodeSet callRpc(String url, String username, String password, Element data) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(url, username, password)) {
+            return connection.callRpc(data);
+        }
+    }
+
+    @Override
+    public Element rpc(NetconfDevice netconfDevice, String request) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            return connection.rpc(request);
+        }
+    }
+
+    @Override
+    public Element rpc(String url, String username, String password, String request) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(url, username, password)) {
+            return connection.rpc(request);
+        }
+    }
+
+    @Override
+    public Element rpc(NetconfDevice netconfDevice, Element request) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            return connection.rpc(request);
+        }
+    }
+
+    @Override
+    public Element rpc(String url, String username, String password, Element request) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(url, username, password)) {
+            return connection.rpc(request);
+        }
+    }
+
+    @Override
+    public int sendRequest(NetconfDevice netconfDevice, String request) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            return connection.sendRequest(request);
+        }
+    }
+
+    @Override
+    public int sendRequest(String url, String username, String password, String request) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(url, username, password)) {
+            return connection.sendRequest(request);
+        }
+    }
+
+    @Override
+    public int sendRequest(NetconfDevice netconfDevice, Element request) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            return connection.sendRequest(request);
+        }
+    }
+
+    @Override
+    public int sendRequest(String url, String username, String password, Element request) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(url, username, password)) {
+            return connection.sendRequest(request);
+        }
+    }
+
+    @Override
+    public int sendRpc(NetconfDevice netconfDevice, Element data) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            return connection.sendRpc(data);
+        }
+    }
+
+    @Override
+    public int sendRpc(String url, String username, String password, Element data) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(url, username, password)) {
+            return connection.sendRpc(data);
+        }
+    }
+
+    @Override
+    public void validate(NetconfDevice netconfDevice, Element configTree) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.validate(configTree);
+        }
+    }
+
+    @Override
+    public void validate(String url, String username, String password, Element configTree) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(url, username, password)) {
+            connection.validate(configTree);
+        }
+    }
+
+    @Override
+    public Element action(String url, String username, String password, Element data) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(url, username, password)) {
+            return connection.action(data);
+        }
+    }
+
+    @Override
+    public Element action(NetconfDevice netconfDevice, Element data) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            return connection.action(data);
+        }
+    }
 }
