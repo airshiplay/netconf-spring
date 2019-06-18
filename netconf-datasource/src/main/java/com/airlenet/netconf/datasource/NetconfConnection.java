@@ -1,14 +1,10 @@
 package com.airlenet.netconf.datasource;
 
-import com.airlenet.netconf.datasource.exception.*;
-import com.airlenet.netconf.datasource.util.Utils;
+import com.airlenet.netconf.datasource.exception.NetconfSessionClosedException;
+import com.airlenet.netconf.datasource.util.NetconfExceptionUtils;
 import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkException;
 import com.tailf.jnc.*;
-
-import java.io.IOException;
-import java.net.ConnectException;
-import java.net.SocketTimeoutException;
 
 public class NetconfConnection implements NetworkConnection {
 
@@ -326,50 +322,10 @@ public class NetconfConnection implements NetworkConnection {
     }
 
     private NetconfException getCauseException(Exception e) {
-        if (e instanceof SocketTimeoutException) {
-            return new NetconfSocketTimeoutException(e);
-        }
         if (e instanceof SessionClosedException) {
             abandoned = true;
             return new NetconfSessionClosedException(e);
         }
-        if (e instanceof ConnectException) {
-            return new NetconfConnectException(e);
-        }
-        if (e instanceof IOException) {
-            Throwable cause2 = e.getCause();
-            if (cause2 != null) {
-                Throwable cause3 = cause2.getCause();
-                if (cause2 instanceof ConnectException) {
-                    return new NetconfConnectException(e);
-                } else if (cause2 instanceof SocketTimeoutException) {
-                    return new NetconfSocketTimeoutException(e);
-                } else if (cause3 != null) {
-                    if (cause3 instanceof ConnectException) {
-                        return new NetconfConnectException(e);
-                    }
-                }
-            }
-            return new NetconfIOException(e);
-        }
-        if (e instanceof JNCException) {
-            if (e.toString().startsWith("Timeout error:")) {
-                return new NetconfJNCTimeOutException(e);
-            } else if (e.toString().startsWith("Authentication failed")) {
-                return new NetconfAuthException(e);
-            } else if (e.toString().contains("A subscription is already active for this session")) {
-                return new NetconfSuscribedException(e);
-            } else if (e.toString().contains("Message ID mismatch")) {
-                return new NetconfSessionMessageMismatchException(e);
-            } else if (e.toString().contains("Element does not exists")) {
-                return new NetconfJNCElementMissingException(e);
-            } else if (e.toString().startsWith("Parse error")) {
-                return new NetconfJNCParseException(e);
-            } else if (e.toString().startsWith("Session error:")) {
-                return new NetconfJNCSessionException(e);
-            }
-            return new NetconfJNCException(e);
-        }
-        return new NetconfException(e);
+        return NetconfExceptionUtils.getCauseException(e);
     }
 }

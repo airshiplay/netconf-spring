@@ -1,6 +1,7 @@
 package com.airlenet.netconf.datasource.util;
 
 import com.airlenet.netconf.datasource.NetconfException;
+import com.airlenet.netconf.datasource.exception.*;
 import com.tailf.jnc.JNCException;
 import com.tailf.jnc.SessionClosedException;
 
@@ -9,6 +10,52 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 
 public class NetconfExceptionUtils {
+    public static NetconfException getCauseException(Exception e) {
+        if (e instanceof SocketTimeoutException) {
+            return new NetconfSocketTimeoutException(e);
+        }
+        if (e instanceof SessionClosedException) {
+            return new NetconfSessionClosedException(e);
+        }
+        if (e instanceof ConnectException) {
+            return new NetconfConnectException(e);
+        }
+        if (e instanceof IOException) {
+            Throwable cause2 = e.getCause();
+            if (cause2 != null) {
+                Throwable cause3 = cause2.getCause();
+                if (cause2 instanceof ConnectException) {
+                    return new NetconfConnectException(e);
+                } else if (cause2 instanceof SocketTimeoutException) {
+                    return new NetconfSocketTimeoutException(e);
+                } else if (cause3 != null) {
+                    if (cause3 instanceof ConnectException) {
+                        return new NetconfConnectException(e);
+                    }
+                }
+            }
+            return new NetconfIOException(e);
+        }
+        if (e instanceof JNCException) {
+            if (e.toString().startsWith("Timeout error:")) {
+                return new NetconfJNCTimeOutException(e);
+            } else if (e.toString().startsWith("Authentication failed")) {
+                return new NetconfAuthException(e);
+            } else if (e.toString().contains("A subscription is already active for this session")) {
+                return new NetconfSuscribedException(e);
+            } else if (e.toString().contains("Message ID mismatch")) {
+                return new NetconfSessionMessageMismatchException(e);
+            } else if (e.toString().contains("Element does not exists")) {
+                return new NetconfJNCElementMissingException(e);
+            } else if (e.toString().startsWith("Parse error")) {
+                return new NetconfJNCParseException(e);
+            } else if (e.toString().startsWith("Session error:")) {
+                return new NetconfJNCSessionException(e);
+            }
+            return new NetconfJNCException(e);
+        }
+        return new NetconfException(e);
+    }
 
     public static NetconfExceptionType getCauseType(NetconfException e) {
         if (e == null) {
@@ -40,34 +87,5 @@ public class NetconfExceptionUtils {
             return NetconfExceptionType.JNCException;
         }
         return NetconfExceptionType.NetconfException;
-    }
-
-    public static Exception getCauseException(Exception e) {
-        if (e == null) {
-            return null;
-        }
-        Throwable cause = e.getCause();
-        if (cause == null) {
-            return e;
-        }
-        if (cause instanceof SocketTimeoutException) {
-            return (SocketTimeoutException) cause;
-        }
-        if (cause instanceof SessionClosedException) {
-            return (SessionClosedException) cause;
-        }
-        if (cause instanceof IOException) {
-            Throwable cause2 = cause.getCause();
-            if (cause2 != null && cause2 instanceof ConnectException) {
-                return (ConnectException) cause2;
-            } else if (cause2.getCause() != null && cause2.getCause() instanceof ConnectException) {
-                return (ConnectException) cause2.getCause();
-            }
-            return (IOException) cause;
-        }
-        if (cause instanceof JNCException) {
-            return (JNCException) cause;
-        }
-        return e;
     }
 }

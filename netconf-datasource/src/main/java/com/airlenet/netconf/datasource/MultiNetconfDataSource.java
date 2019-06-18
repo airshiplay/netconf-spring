@@ -47,12 +47,11 @@ public class MultiNetconfDataSource extends NetconfDataSource implements MultiNe
                 netconfDataSource.setKexTimeout(this.getKexTimeout());
                 netconfDataSource.setAutoReconnection(this.isAutoReconnection());
                 dataSourceObjectMap.put(url, netconfDataSource);
-            }else {
-                if(!username.equals(netconfDataSource.getUsername())){
-                    netconfDataSource.restart();//修改用户名，需要重置DataSource
+            } else {
+                if (!username.equals(netconfDataSource.getUsername()) || !password.equals(netconfDataSource.getPassword())) {
+                    netconfDataSource.restart();//需要重置DataSource
                     netconfDataSource.setUsername(username);
-                }else if(!password.equals(netconfDataSource.getPassword())){
-                    netconfDataSource.setPassword(password);//修改密码，断链后，稍后自动使用新密码建立连接
+                    netconfDataSource.setPassword(password);
                 }
             }
             return netconfDataSource;

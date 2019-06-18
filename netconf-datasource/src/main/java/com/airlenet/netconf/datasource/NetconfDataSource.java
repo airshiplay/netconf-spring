@@ -1,19 +1,21 @@
 package com.airlenet.netconf.datasource;
 
-import com.airlenet.netconf.datasource.exception.*;
+import com.airlenet.netconf.datasource.exception.GetNetconfConnectionTimeoutException;
+import com.airlenet.netconf.datasource.exception.NetconfDataSourceClosedException;
 import com.airlenet.netconf.datasource.stat.NetconfDataSourceStatManager;
+import com.airlenet.netconf.datasource.util.NetconfExceptionUtils;
 import com.airlenet.netconf.datasource.util.StringUtils;
 import com.airlenet.netconf.datasource.util.Utils;
-import com.tailf.jnc.*;
+import com.tailf.jnc.Device;
+import com.tailf.jnc.DeviceUser;
+import com.tailf.jnc.NetconfSession;
+import com.tailf.jnc.SSHSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.MBeanRegistration;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.net.SocketTimeoutException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
@@ -279,16 +281,8 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                         }
 
                     }
-                } catch (YangException e) {
-                    throw new NetconfException(e);
-                } catch (SocketTimeoutException e) {
-                    throw new NetconfSocketTimeoutException(e);
-                } catch (ConnectException e) {
-                    throw new NetconfConnectException(e);
-                } catch (IOException e) {
-                    throw new NetconfIOException(e);
-                } catch (JNCException e) {
-                    throw new NetconfJNCException(e);
+                } catch (Exception e) {
+                    throw NetconfExceptionUtils.getCauseException(e);
                 } finally {
                     fetchConnectionStackTrace = "";
                     lock.unlock();
