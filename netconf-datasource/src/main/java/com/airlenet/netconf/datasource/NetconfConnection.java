@@ -1,6 +1,7 @@
 package com.airlenet.netconf.datasource;
 
-import com.airlenet.netconf.datasource.exception.NetconfSessionClosedException;
+import com.airlenet.netconf.datasource.exception.NetconfJNCTimeOutException;
+import com.airlenet.netconf.datasource.exception.NetconfSessionMessageMismatchException;
 import com.airlenet.netconf.datasource.util.NetconfExceptionUtils;
 import com.airlenet.network.NetworkConnection;
 import com.airlenet.network.NetworkException;
@@ -322,10 +323,12 @@ public class NetconfConnection implements NetworkConnection {
     }
 
     private NetconfException getCauseException(Exception e) {
-        if (e instanceof SessionClosedException) {
+        NetconfException causeException = NetconfExceptionUtils.getCauseException(e);
+        if (e instanceof NetconfSessionMessageMismatchException
+                || e instanceof SessionClosedException
+                || e instanceof NetconfJNCTimeOutException) {
             abandoned = true;
-            return new NetconfSessionClosedException(e);
         }
-        return NetconfExceptionUtils.getCauseException(e);
+        return causeException;
     }
 }
