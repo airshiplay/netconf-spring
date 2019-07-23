@@ -20,7 +20,7 @@ public class NetconfConnection implements NetworkConnection {
     protected long outputCount;
     protected String outputMessage;
     protected volatile boolean abandoned = false;
-    protected boolean transaction;
+    protected boolean transaction = true;
     protected JNCSubscriber jncSubscriber;
     protected String stream;
     NetconfDataSource netconfDataSource;
@@ -133,11 +133,15 @@ public class NetconfConnection implements NetworkConnection {
 
     @Override
     public void commit() throws NetconfException {
-        try {
-            netconfSession.commit();//now commit them 确认提交
-        } catch (Exception e) {
-            throw getCauseException(e);
-        }
+        throw new NetconfException("not support commit");
+    }
+
+    public boolean getAutoCommit() {
+        return this.transaction;
+    }
+
+    public void setAutoCommit(boolean autoCommit) {
+        this.transaction = autoCommit;
     }
 
     public NodeSet callRpc(Element data) throws NetconfException {
