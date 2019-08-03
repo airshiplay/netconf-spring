@@ -250,12 +250,12 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                             try {
                                 device.newSession(jncSubscriber, sessionName);
                             } catch (Exception e) {//断链，重新连接  将所有连接重置，并重新建联
-                                if (!autoReconnection && i > 0) {
-                                    throw e;
-                                }
                                 device.close();
                                 connectCount = 0;
                                 subscriberConnectCount = 0;
+                                if (!autoReconnection && i > 0) {
+                                    throw e;
+                                }
                                 activeConnectionLock.lock();
                                 try {
                                     activeConnections.clear();
