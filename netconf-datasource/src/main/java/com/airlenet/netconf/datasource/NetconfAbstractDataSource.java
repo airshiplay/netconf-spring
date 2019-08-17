@@ -13,12 +13,11 @@ public abstract class NetconfAbstractDataSource implements NetworkDataSource {
     protected volatile String username;
     protected volatile String password;
     protected volatile String url;//netconf://172.1.1.1:22
-
+    protected String zoneId;
     protected final Date createdTime = new Date();
     protected Date initedTime;
     protected long id;
     protected volatile boolean inited;
-    protected TimeZone timeZone;
     protected String name;
     protected ReentrantLock activeConnectionLock = new ReentrantLock();
     protected final Map<NetconfPooledConnection, Object> activeConnections = new IdentityHashMap<NetconfPooledConnection, Object>();
@@ -35,12 +34,12 @@ public abstract class NetconfAbstractDataSource implements NetworkDataSource {
         return "DataSource-" + System.identityHashCode(this);
     }
 
-    public TimeZone getTimeZone() {
-        return timeZone;
+    public String getZoneId() {
+        return zoneId;
     }
 
-    public void setTimeZone(TimeZone timeZone) {
-        this.timeZone = timeZone;
+    public void setZoneId(String zoneId) {
+        this.zoneId = zoneId;
     }
 
     public String getUsername() {

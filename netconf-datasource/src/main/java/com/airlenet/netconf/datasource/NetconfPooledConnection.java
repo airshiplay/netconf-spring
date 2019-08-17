@@ -6,7 +6,6 @@ import com.airlenet.network.NetworkPooledConnection;
 import com.tailf.jnc.Element;
 import com.tailf.jnc.NodeSet;
 
-import java.util.TimeZone;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class NetconfPooledConnection extends NetconfConnection implements NetworkPooledConnection, NetworkConnection, AutoCloseable {
@@ -92,15 +91,15 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
         close();
     }
 
-    public void updateTimeZone(TimeZone timeZone) {
+    public void updateZoneId(String zoneId) {
         if (holder != null) {
-            holder.dataSource.setTimeZone(timeZone);
+            holder.dataSource.setZoneId(zoneId);
         }
     }
 
-    public TimeZone getTimeZone() {
+    public String getZoneId() {
         if (holder != null) {
-            return holder.dataSource.getTimeZone();
+            return holder.dataSource.getZoneId();
         }
         return null;
     }

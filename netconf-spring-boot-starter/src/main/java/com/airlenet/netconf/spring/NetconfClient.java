@@ -1,5 +1,6 @@
 package com.airlenet.netconf.spring;
 
+import com.airlenet.netconf.datasource.NetconfDevice;
 import com.airlenet.netconf.datasource.NetconfException;
 import com.airlenet.netconf.datasource.NetconfPooledConnection;
 import com.tailf.jnc.Element;

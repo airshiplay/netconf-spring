@@ -1,6 +1,7 @@
 package com.airlenet.netconf.spring;
 
 import com.airlenet.netconf.datasource.MultiNetconfDataSource;
+import com.airlenet.netconf.datasource.NetconfDevice;
 import com.airlenet.netconf.datasource.NetconfException;
 import com.airlenet.netconf.datasource.NetconfPooledConnection;
 import com.airlenet.network.NetworkException;
@@ -24,6 +25,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public NodeSet get(NetconfDevice netconfDevice, String xpath) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.get(xpath);
         }
     }
@@ -38,7 +40,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public NodeSet get(NetconfDevice netconfDevice, Element subtreeFilter) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
-
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.get(subtreeFilter);
         }
     }
@@ -54,7 +56,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public NodeSet getConfig(NetconfDevice netconfDevice, String xpath) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
-
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.getConfig(xpath);
         } catch (NetworkException e) {
             throw new NetconfException(e);
@@ -64,7 +66,6 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public NodeSet getConfig(String url, String username, String password, Element subtreeFilter) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(url, username, password)) {
-
             return connection.getConfig(subtreeFilter);
         }
     }
@@ -72,6 +73,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public NodeSet getConfig(NetconfDevice netconfDevice, Element subtreeFilter) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.getConfig(subtreeFilter);
         }
     }
@@ -86,6 +88,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public void editConfig(NetconfDevice netconfDevice, Element configTree) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             connection.editConfig(configTree);
         }
     }
@@ -97,12 +100,15 @@ public class DefaultNetconfClient implements NetconfClient {
 
     @Override
     public NetconfPooledConnection getConnection(NetconfDevice netconfDevice) throws NetconfException {
-        return multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword());
+        NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword());
+        connection.updateZoneId(netconfDevice.getZoneId());
+        return connection;
     }
 
     @Override
     public NodeSet callRpc(NetconfDevice netconfDevice, Element data) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.callRpc(data);
         }
     }
@@ -117,6 +123,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public Element rpc(NetconfDevice netconfDevice, String request) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.rpc(request);
         }
     }
@@ -131,6 +138,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public Element rpc(NetconfDevice netconfDevice, Element request) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.rpc(request);
         }
     }
@@ -145,6 +153,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public int sendRequest(NetconfDevice netconfDevice, String request) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.sendRequest(request);
         }
     }
@@ -159,6 +168,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public int sendRequest(NetconfDevice netconfDevice, Element request) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.sendRequest(request);
         }
     }
@@ -173,6 +183,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public int sendRpc(NetconfDevice netconfDevice, Element data) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.sendRpc(data);
         }
     }
@@ -187,6 +198,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public void validate(NetconfDevice netconfDevice, Element configTree) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             connection.validate(configTree);
         }
     }
@@ -208,6 +220,7 @@ public class DefaultNetconfClient implements NetconfClient {
     @Override
     public Element action(NetconfDevice netconfDevice, Element data) throws NetconfException {
         try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
             return connection.action(data);
         }
     }

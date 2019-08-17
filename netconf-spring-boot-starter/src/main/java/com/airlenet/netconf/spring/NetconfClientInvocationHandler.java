@@ -1,6 +1,7 @@
 package com.airlenet.netconf.spring;
 
 import com.airlenet.netconf.datasource.MultiNetconfDataSource;
+import com.airlenet.netconf.datasource.NetconfDevice;
 import com.airlenet.netconf.datasource.NetconfPooledConnection;
 import com.airlenet.netconf.spring.autoconfigure.NetconfProperties;
 

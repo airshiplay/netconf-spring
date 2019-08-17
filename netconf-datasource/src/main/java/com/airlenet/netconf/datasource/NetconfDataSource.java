@@ -507,8 +507,8 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
         dataMap.put("Name", this.getName());
         dataMap.put("URL", this.getUrl());
         dataMap.put("UserName", this.getUsername());
-        if (this.getTimeZone() != null) {
-            dataMap.put("TimeZone", this.getTimeZone());
+        if (this.getZoneId() != null) {
+            dataMap.put("ZoneId", this.getZoneId());
         }
         dataMap.put("InitedTime", initedTime);
         dataMap.put("MaxPoolSize", this.getMaxPoolSize());
