@@ -9,6 +9,7 @@ public class NetconfDevice {
     private int port;
     private String username;
     private String password;
+    private String version;
     private String zoneId;
     private Map<String, Object> extraInfo;
 
@@ -47,6 +48,7 @@ public class NetconfDevice {
     }
 
     public NetconfDevice(String host, int port, String username, String password, String zoneId) {
+        this.url = "netconf://" + host + ":" + port;
         this.host = host;
         this.port = port;
         this.username = username;
@@ -94,6 +96,14 @@ public class NetconfDevice {
         this.password = password;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     public String getZoneId() {
         return zoneId;
     }
@@ -130,4 +140,5 @@ public class NetconfDevice {
         }
         this.extraInfo.remove(key);
     }
+
 }
