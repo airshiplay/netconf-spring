@@ -46,6 +46,10 @@ public class MultiNetconfDataSource extends NetconfDataSource implements MultiNe
                 netconfDataSource.setMaxPoolSize(this.getMaxPoolSize());
                 netconfDataSource.setKexTimeout(this.getKexTimeout());
                 netconfDataSource.setAutoReconnection(this.isAutoReconnection());
+
+                netconfDataSource.setTestOption(this.getTestOption());
+                netconfDataSource.setErrorOption(this.getErrorOption());
+                netconfDataSource.setDefaultOperation(this.getDefaultOperation());
                 dataSourceObjectMap.put(url, netconfDataSource);
             } else {
                 if (!username.equals(netconfDataSource.getUsername()) || !password.equals(netconfDataSource.getPassword())) {

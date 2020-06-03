@@ -240,12 +240,42 @@ public class NetconfConnection implements NetworkConnection {
             throw getCauseException(e);
         }
     }
+    public void editConfig(NodeSet nodeSet) throws NetconfException {
+        if (this.transaction && isCandidate()) {
+            try {
+                netconfSession.discardChanges();//现将 上次没有提交的配置 还原
+                netconfSession.lock(NetconfSession.CANDIDATE);
 
+                netconfSession.copyConfig(NetconfSession.RUNNING, NetconfSession.CANDIDATE);
+                this.netconfSession.editConfig(NetconfSession.CANDIDATE, nodeSet);
+                if (isConfirmedCommit()) {
+                    netconfSession.confirmedCommit(60);// candidates are now updated 1分钟内没有确认 则还原配置
+                }
+                netconfSession.commit();//now commit them 确认提交
+            } catch (Exception e) {
+                throw getCauseException(e);
+            } finally {
+                try {
+                    netconfSession.unlock(NetconfSession.CANDIDATE);
+                } catch (Exception e) {
+                    throw getCauseException(e);
+                }
+            }
+        } else {
+            try {
+                netconfSession.editConfig(nodeSet);
+            } catch (Exception e) {
+                throw getCauseException(e);
+            }
+        }
+
+    }
     public void editConfig(Element configTree) throws NetconfException {
         if (this.transaction && isCandidate()) {
             try {
                 netconfSession.discardChanges();//现将 上次没有提交的配置 还原
                 netconfSession.lock(NetconfSession.CANDIDATE);
+
                 netconfSession.copyConfig(NetconfSession.RUNNING, NetconfSession.CANDIDATE);
                 this.netconfSession.editConfig(NetconfSession.CANDIDATE, configTree);
                 if (isConfirmedCommit()) {

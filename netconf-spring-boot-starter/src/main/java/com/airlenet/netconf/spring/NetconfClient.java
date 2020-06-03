@@ -27,6 +27,7 @@ public interface NetconfClient {
     public void editConfig(String url, String username, String password, Element configTree) throws NetconfException;
 
     public void editConfig(NetconfDevice netconfDevice, Element configTree) throws NetconfException;
+    public void editConfig(NetconfDevice netconfDevice, NodeSet nodeSet) throws NetconfException;
 
     public NetconfPooledConnection getConnection(String url, String username, String password) throws NetconfException;
 

@@ -37,6 +37,9 @@ public class NetconfDataSourceAutoConfigure {
         multiDataSource.setKexTimeout(netconfProperties.getKexTimeout());
         multiDataSource.setMaxPoolSize(netconfProperties.getMaxPoolSize());
         multiDataSource.setAutoReconnection(netconfProperties.isAutoReconnect());
+        multiDataSource.setTestOption(netconfProperties.getTestOption().ordinal());
+        multiDataSource.setErrorOption(netconfProperties.getErrorOption().ordinal());
+        multiDataSource.setDefaultOperation(netconfProperties.getDefaultOperation().ordinal());
         return multiDataSource;
     }
 

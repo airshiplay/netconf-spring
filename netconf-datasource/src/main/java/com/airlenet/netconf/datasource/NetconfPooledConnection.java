@@ -201,6 +201,12 @@ public class NetconfPooledConnection extends NetconfConnection implements Networ
     }
 
     @Override
+    public void editConfig(NodeSet nodeSet) throws NetconfException {
+        runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
+        conn.editConfig(nodeSet);
+    }
+
+    @Override
     public void subscription(String stream) throws NetconfException {
         runStackTrace = Utils.toString(Thread.currentThread().getStackTrace());
         this.stream = stream;

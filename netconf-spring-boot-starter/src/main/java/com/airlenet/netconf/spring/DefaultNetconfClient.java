@@ -93,6 +93,14 @@ public class DefaultNetconfClient implements NetconfClient {
         }
     }
 
+
+    @Override
+    public void editConfig(NetconfDevice netconfDevice, NodeSet nodeSet) throws NetconfException {
+        try (NetconfPooledConnection connection = multiNetconfDataSource.getConnection(netconfDevice.getUrl(), netconfDevice.getUsername(), netconfDevice.getPassword())) {
+            connection.updateZoneId(netconfDevice.getZoneId());
+            connection.editConfig(nodeSet);
+        }
+    }
     @Override
     public NetconfPooledConnection getConnection(String url, String username, String password) throws NetconfException {
         return multiNetconfDataSource.getConnection(url, username, password);

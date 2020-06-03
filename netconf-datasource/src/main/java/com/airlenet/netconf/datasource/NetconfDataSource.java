@@ -60,6 +60,9 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
 
     private ObjectName objectName;
     private final static AtomicInteger dataSourceIdSeed = new AtomicInteger(0);
+    private int testOption = 0;
+    private int errorOption = 0;
+    private int defaultOperation = 0;
 
     public NetconfDataSource(String url, String username, String password) {
         this.url = url;
@@ -271,6 +274,19 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
                             }
                             SSHSession sshSession = device.getSSHSession(sessionName);
                             NetconfSession netconfSession = device.getSession(sessionName);
+
+                            netconfSession.setDefaultOperation(defaultOperation);
+
+                            if (netconfSession.getCapabilities().hasValidate()) {
+                                netconfSession.setTestOption(testOption);
+                            }
+
+                            if (errorOption == NetconfSession.ROLLBACK_ON_ERROR && netconfSession.getCapabilities().hasRollbackOnError()) {
+                                netconfSession.setErrorOption(errorOption);
+                            } else {
+                                netconfSession.setErrorOption(errorOption);
+                            }
+
                             netconfConnection = new NetconfConnection(this, sessionName, sshSession, netconfSession, jncSubscriber);
 
                             holder = new NetconfConnectionHolder(this, netconfConnection, connectionId);
@@ -564,5 +580,29 @@ public class NetconfDataSource extends NetconfAbstractDataSource implements MBea
             lock.unlock();
         }
         return list;
+    }
+
+    public void setTestOption(int testOption) {
+        this.testOption = testOption;
+    }
+
+    public int getTestOption() {
+        return testOption;
+    }
+
+    public void setErrorOption(int errorOption) {
+        this.errorOption = errorOption;
+    }
+
+    public int getErrorOption() {
+        return errorOption;
+    }
+
+    public void setDefaultOperation(int defaultOperation) {
+        this.defaultOperation = defaultOperation;
+    }
+
+    public int getDefaultOperation() {
+        return defaultOperation;
     }
 }

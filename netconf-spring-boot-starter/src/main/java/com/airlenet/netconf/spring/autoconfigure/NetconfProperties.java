@@ -12,6 +12,15 @@ public class NetconfProperties {
     private int maxPoolSize = 8;
     private boolean autoReconnect = true;
     private boolean exceptionRestart = true;
+    /**
+     * NOT_SET=0  SET=1   TEST_THEN_SET = 2 TEST_ONLY = 3
+     */
+    private TestOption testOption = TestOption.NOT_SET;
+
+    private ErrorOption errorOption = ErrorOption.NOT_SET;
+
+    private DefaultOperation defaultOperation = DefaultOperation.NOT_SET;
+
     private StatViewServlet statViewServlet = new StatViewServlet();
 
 
@@ -71,12 +80,51 @@ public class NetconfProperties {
         this.exceptionRestart = exceptionRestart;
     }
 
+    public TestOption getTestOption() {
+        return testOption;
+    }
+
+    public void setTestOption(TestOption testOption) {
+        this.testOption = testOption;
+    }
+
+    public ErrorOption getErrorOption() {
+        return errorOption;
+    }
+
+    public void setErrorOption(ErrorOption errorOption) {
+        this.errorOption = errorOption;
+    }
+
+    public DefaultOperation getDefaultOperation() {
+        return defaultOperation;
+    }
+
+    public void setDefaultOperation(DefaultOperation defaultOperation) {
+        this.defaultOperation = defaultOperation;
+    }
+
     public StatViewServlet getStatViewServlet() {
         return statViewServlet;
     }
 
     public void setStatViewServlet(StatViewServlet statViewServlet) {
         this.statViewServlet = statViewServlet;
+    }
+
+    public static enum TestOption {
+        /**
+         * NOT_SET=0  SET=1   TEST_THEN_SET = 2 TEST_ONLY = 3
+         */
+        NOT_SET, SET, TEST_THEN_SET, TEST_ONLY
+    }
+
+    public static enum ErrorOption {
+        NOT_SET, STOP_ON_ERROR, CONTINUE_ON_ERROR, ROLLBACK_ON_ERROR
+    }
+
+    public static enum DefaultOperation {
+        NOT_SET, MERGE, REPLACE, NONE
     }
 
     public static class StatViewServlet {
