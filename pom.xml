@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.airlenet.netconf</groupId>
     <artifactId>play-netconf</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>pom</packaging>
     <name>netconf-spring</name>
     <description>netconf-spring</description>
@@ -22,7 +22,7 @@
         <spring-cloud.version>Finchley.SR2</spring-cloud.version>
         <querydsl.version>4.1.4</querydsl.version>
         <play-boot.version>3.0.0-SNAPSHOT</play-boot.version>
-        <play.yang.version>1.2.0-SNAPSHOT</play.yang.version>
+        <play.yang.version>1.2.0</play.yang.version>
         <project.build.timestamp>${timestamp}</project.build.timestamp>
     </properties>
     <modules>
@@ -31,7 +31,7 @@
         <!--<module>netconf-service</module>-->
         <!--<module>netconf-rest</module>-->
         <module>netconf-datasource</module>
-        <!--<module>network-datasource</module>-->
+        <module>network-datasource</module>
         <!--<module>snmp-datasource</module>-->
         <module>netconf-spring-boot-starter</module>
     </modules>
@@ -64,6 +64,16 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>airlenet-releases</id>
+            <name>Airlenet Releases</name>
+            <url>https://airlenet.github.io/maven-release</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
@@ -245,6 +255,16 @@
                     <name>private-Snapshot</name>
                     <url>http://maven.airlenet.com:8081/repository/maven-snapshots</url>
                 </snapshotRepository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>local</id>
+            <distributionManagement>
+                <repository>
+                    <id>local</id>
+                    <name>local-Releases</name>
+                    <url>file://${env.MAVEN_REPO_DIR}</url>
+                </repository>
             </distributionManagement>
         </profile>
     </profiles>
