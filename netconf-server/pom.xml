@@ -12,7 +12,7 @@
     <artifactId>netconf-server</artifactId>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sshd.version>1.6.0</sshd.version>
+        <sshd.version>2.7.0</sshd.version>
     </properties>
     <dependencies>
         <!-- Apache SSHD -->
